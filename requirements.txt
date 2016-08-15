@@ -1,2 +1,2 @@
-tc_xml_python==0.1.0
+tc_xml_python==0.1.2
 sqlalchemy==1.0.14

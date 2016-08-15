@@ -57,3 +57,10 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Db files
+db/
+venv/
+
+# Idea
+.idea

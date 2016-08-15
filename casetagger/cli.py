@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import click
+from db.db_handler import DbHandler
 
 @click.command()
-def main(args=None):
-    """Console script for casetagger"""
-    click.echo("Replace this message by putting your code into "
-                "casetagger.cli.main")
-    click.echo("See click documentation at http://click.pocoo.org/")
+def main():
+    db = DbHandler("nno")
 
 
 if __name__ == "__main__":

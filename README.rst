@@ -25,6 +25,32 @@ Part-of-speech and morphological tagger employing a simple cased-based algorithm
 * Documentation: https://casetagger.readthedocs.io.
 
 
+Overview
+--------
+
+The case tagger is a polyglot part-of-speech and morphological gloss-tagger. The tag-set used is the `Typecraft tag-set
+<https://typecraft.org/tc2wiki/Special:TypeCraft/POSTags/>`_.
+
+The tagger uses simple case-based learning from a large corpus to create a large database of different cases for
+each language.
+
+When tagging a phrase, the tagger fetches any relevant case for each word, and then 'merges' the cases.
+
+Installation
+-----------
+
+    pip install casetagger
+
+Usage
+--------
+
+    casetagger [OPTIONS]
+
+Tagging
+--------
+
+The
+
 Features
 --------
 
