@@ -15,7 +15,7 @@ from casetagger.models.db import Case, CaseFromCounter
 from casetagger.models.extras import Cases
 
 
-class TestCasetagger(object):
+class TestDatabase(object):
 
     @classmethod
     def setup_class(cls):
@@ -158,12 +158,6 @@ class TestCasetagger(object):
         db._destroy_database()
 
         assert not os.path.isfile(db.db_path)
-
-    def test_populate_probabilities(self):
-
-        case_1 = Case(type=config.CASE_TYPE_GLOSS_PREFIX_GLOSS, case_from="from", case_to="to_1")
-        self.db.insert_case(case_1)
-
 
     @classmethod
     def teardown_class(cls):
