@@ -45,25 +45,10 @@ class Cases:
     def __len__(self):
         return len(self.cases)
 
-
-class WordFullCases(Cases):
-    pass
-
-
-class MorphemeTargetCases(Cases):
-    def __init__(self, morpheme, word, phrase):
-        """
-
-        :param morpheme:
-        :param word:
-        :param phrase:
-        """
-
     def merge(self):
-        pass
+        return "N"
 
-
-class WordTargetCases(Cases):
+class WordCases(Cases):
     def __init__(self, word, phrase):
         """
         Creates the word-cases object
@@ -83,6 +68,8 @@ class WordTargetCases(Cases):
         suffix_word = None
         prefix_pos = None
         suffix_pos = None
+        pos = word.pos
+
         morphemes = []
 
         if word_index > 0:
@@ -90,28 +77,63 @@ class WordTargetCases(Cases):
             prefix_pos = phrase.words[0].pos
 
         if word_index < word_length - 1:
-            suffix_word = phrase.words[word_index + 1]
+            suffix_word = phrase.words[word_index + 1].word
             suffix_pos = phrase.words[0].pos
 
         if len(word.morphemes) > 0:
             morphemes = map(lambda x: x.morpheme, word.morphemes)
 
+        self.add_case(config.CASE_TYPE_POS_WORD, word.word, pos)
+        self.add_case(config.CASE_TYPE_POS_WORD_CASE, str(word.word[0].isupper()), pos)
+        self.add_case(config.CASE_TYPE_POS_WORD_CONTAINS_CASE, str(word.word.lower() != word.word), pos)
+
         if prefix_word is not None:
-            self.add_case(config.CASE_TYPE_POS_PREFIX_WORD, prefix_word, None)
+            self.add_case(config.CASE_TYPE_POS_PREFIX_WORD, prefix_word, pos)
 
         if suffix_word is not None:
-            self.add_case(config.CASE_TYPE_POS_SUFFIX_WORD, suffix_word, None)
+            self.add_case(config.CASE_TYPE_POS_SUFFIX_WORD, suffix_word, pos)
 
         if prefix_pos is not None:
-            self.add_case(config.CASE_TYPE_POS_PREFIX_POS, prefix_pos, None)
+            self.add_case(config.CASE_TYPE_POS_PREFIX_POS, prefix_pos, pos)
 
         if suffix_pos is not None:
-            self.add_case(config.CASE_TYPE_POS_SUFFIX_POS, suffix_pos, None)
+            self.add_case(config.CASE_TYPE_POS_SUFFIX_POS, suffix_pos, pos)
 
         if len(morphemes) > 0:
             for morpheme in morphemes:
-                self.add_case(config.CASE_TYPE_POS_MORPHEME, morpheme.morpheme, None)
+                self.add_case(config.CASE_TYPE_POS_MORPHEME, morpheme, pos)
+
+
+class MorphemeCases(Cases):
+    def __init__(self, morpheme, word, phrase):
+        """
+        Creates the MorphemeTargetCases object.
+
+        :param morpheme:
+        :param word:
+        :param phrase:
+        """
+        Cases.__init__(self)
+        word_index = word.morphemes.index(morpheme)
+        morphs_length = len(word.morphemes)
+
+        # Case variables
+        prefix_morph = None
+        suffix_morph = None
+        prefix_gloss = None
+        suffix_gloss = None
+        gloss = ".".join(morpheme.glosses)
+
+        if word_index > 0:
+            prefix_morph = word.morphemes[0].word
+            prefix_gloss = word.morphemes[0].pos
+
+        if word_index < morphs_length - 1:
+            suffix_morph = word.morphemes[word_index + 1]
+            suffix_gloss = word.morphemes[0].pos
+
+
+
 
     def merge(self):
-        return self.cases[0]
-
+        pass
