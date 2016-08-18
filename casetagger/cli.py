@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import click
-from db.db_handler import DbHandler
+
+from casetagger.db import DbHandler
+
 
 @click.command()
 def main():
