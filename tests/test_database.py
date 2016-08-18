@@ -132,7 +132,7 @@ class TestDatabase(object):
         fetched = self.db.fetch_all_to_cases(cases)
 
         assert fetched is not None
-        assert len(fetched) == 4
+        assert len(fetched) == 6
         for f in fetched:
             print("")
             print("%s, %s: %f" % (f.type, f.case_to, f.prob))
