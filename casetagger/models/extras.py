@@ -1,6 +1,8 @@
 import casetagger.config as config
 import casetagger.models.db as models
 
+import math
+
 from tc_xml_python.models import Phrase
 
 
@@ -50,13 +52,48 @@ class Cases:
 
     def merge(self):
         """
-        This is the 'magic-method' of the
+        This is the 'magic-method' of the algorithm.
+
+        It takes a set of cases, and "merges" them into the result case which is most likely.
+
+        The aglorithm works in the following manner:
+
+
         :return:
         """
 
         for case in self.cases:
             print("Merging: " + str(case))
         return "N"
+
+    @classmethod
+    def adjust_probability(self, probability, occurrences, max_occurences):
+        """
+        This method takes a probability, an occurrence-count, and a base-line max-occurrences,
+        from which it calculates an adjusted probability.
+
+        The idea behind this is to adjust probabilities which rely on "few" occurrence-counts to be more
+        insecure than probabilities which have high occurrence counts.
+
+        Quite simply, the scaling factor is log_a(occurences)/log_a(max_occurrences) where a is some
+        base, 1000 by default.
+
+        Example: We have a probability 0.8 with 2000 occurrences, and max_occurrences 8000
+
+        This gives the adjusted probability = 0.8 * log_1000(2000)/log_1000(8000) = 0.67
+
+        The scaling is clearly slow, as with max_occurrences equal to 100 000 we get a adjusted probability
+        in the example above 0.52.
+
+        Note that probability adjusting can be turned off by setting config.ADJUST_FOR_OCCURRENCE to false
+
+        :param probability:
+        :param occurences:
+        :param max_occurences:
+        :return:
+        """
+
+        return probability * math.log(occurrences, config.OCCURRENCE_ORDER_OF_MAGNITUDE) / math.log(max_occurences, config.OCCURRENCE_ORDER_OF_MAGNITUDE)
 
 class WordCases(Cases):
     def __init__(self, word, phrase):
