@@ -21,6 +21,9 @@ class Case(Base):
             and self.case_to == other.case_to \
             and self.case_from == other.case_from
 
+    def __str__(self):
+        return "[Case#%d]: %d %s => %s, occurrences = %d" % (self.id, self.type, self.case_from, self.case_to, self.occurrences)
+
 
 class CaseFromCounter(Base):
     __tablename__ = 'case_from_counter'

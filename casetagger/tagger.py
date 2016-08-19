@@ -56,6 +56,7 @@ class CaseTagger:
                 if not (word.pos is None and not config.REGISTER_EMPTY_POS):
                     word_cases = WordCases(word, phrase)
                     for case_mock in word_cases:
+                        print(case_mock)
                         db.insert_or_increment_case(
                             Case(type=case_mock.type, case_from=case_mock.case_from, case_to=case_mock.case_to))
 
@@ -102,7 +103,7 @@ class CaseTagger:
                     for morpheme in word.morphemes:
                         morpheme_cases = MorphemeCases(morpheme, word, phrase)
 
-                        db.fetch_all_to_cases(morpheme, morpheme_cases)
+                        db.fetch_all_to_cases(morpheme_cases)
 
                         most_likely_gloss = morpheme_cases.merge()
                         morpheme.glosses = most_likely_gloss.split(".")

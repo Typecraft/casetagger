@@ -7,6 +7,7 @@ from tc_xml_python.models.word import Word
 from tc_xml_python.models.morpheme import Morpheme
 
 from casetagger.tagger import CaseTagger
+from casetagger.models.db import Case
 
 import random
 
@@ -93,6 +94,16 @@ class TestTagger(object):
     def test_train(self):
         CaseTagger.instantiate_db("test")
         CaseTagger.train(self.detail_text)
+
+        session = CaseTagger.db.db_factory()
+
+        results = session.query(Case).all()
+
+        assert len(results) > 0
+
+        #for result in results:
+        #    print(result)
+
         CaseTagger.db._clear_database()
 
     def test_tag_simple_text(self):
@@ -122,4 +133,12 @@ class TestTagger(object):
         text.add_phrase(phrase)
 
         CaseTagger.tag_text(text)
+
+        for phrase in text.phrases:
+            for word in phrase.words:
+                print(word.word + ": " + word.pos)
+
+    @classmethod
+    def teardown_class(cls):
+        CaseTagger.db._destroy_database()
 

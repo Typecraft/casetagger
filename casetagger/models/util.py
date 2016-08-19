@@ -1,4 +1,5 @@
 from casetagger.models.db import Case, CaseRelation, CaseFromCounter
+from tc_xml_python.models.morpheme import Morpheme
 
 
 def copy_case(c):
@@ -15,3 +16,9 @@ def copy_case_from_counter(cfc):
 
 def case_to_case_from_counter(c):
     return CaseFromCounter(type=c.type, case_from=c.case_from)
+
+
+def get_glosses_concatenated(morpheme):
+    assert isinstance(morpheme, Morpheme)
+
+    return ".".join(sorted(morpheme.glosses))

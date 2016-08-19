@@ -1,5 +1,6 @@
 pos <= word
 pos <= word_case
+pos <= word_some_case
 pos <= prefix word
 pos <= suffix word
 pos <= prefix pos

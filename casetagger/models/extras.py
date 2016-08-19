@@ -21,6 +21,9 @@ class CaseMock:
     def set_prob(self, prob):
         self.prob = prob
 
+    def __str__(self):
+        return "%d %s => %s [occurences=%s, prob=%s]" % (self.type, self.case_from, self.case_to, self.occurrences, self.prob)
+
 
 class Cases:
     """
@@ -46,6 +49,12 @@ class Cases:
         return len(self.cases)
 
     def merge(self):
+        """
+        This is the 'magic-method' of the
+        :return:
+        """
+        for case in self.cases:
+            print(case)
         return "N"
 
 class WordCases(Cases):
@@ -73,19 +82,23 @@ class WordCases(Cases):
         morphemes = []
 
         if word_index > 0:
-            prefix_word = phrase.words[0].word
-            prefix_pos = phrase.words[0].pos
+            prefix_word = phrase.words[word_index - 1].word
+            prefix_pos = phrase.words[word_index - 1].pos
 
         if word_index < word_length - 1:
             suffix_word = phrase.words[word_index + 1].word
-            suffix_pos = phrase.words[0].pos
+            suffix_pos = phrase.words[word_index + 1].pos
 
         if len(word.morphemes) > 0:
             morphemes = map(lambda x: x.morpheme, word.morphemes)
 
         self.add_case(config.CASE_TYPE_POS_WORD, word.word, pos)
-        self.add_case(config.CASE_TYPE_POS_WORD_CASE, str(word.word[0].isupper()), pos)
-        self.add_case(config.CASE_TYPE_POS_WORD_CONTAINS_CASE, str(word.word.lower() != word.word), pos)
+
+        if str(word.word[0]).isupper():
+            self.add_case(config.CASE_TYPE_POS_WORD_CASE, "True", pos)
+
+        if str(word.word.lower() != word.word):
+            self.add_case(config.CASE_TYPE_POS_WORD_CONTAINS_CASE, "True", pos)
 
         if prefix_word is not None:
             self.add_case(config.CASE_TYPE_POS_PREFIX_WORD, prefix_word, pos)
