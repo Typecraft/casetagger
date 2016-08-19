@@ -1,7 +1,7 @@
 import casetagger.config as config
 import casetagger.models.db as models
 
-from tc_xml_python.models.phrase import Phrase
+from tc_xml_python.models import Phrase
 
 
 class CaseMock:
@@ -53,8 +53,9 @@ class Cases:
         This is the 'magic-method' of the
         :return:
         """
+
         for case in self.cases:
-            print(case)
+            print("Merging: " + str(case))
         return "N"
 
 class WordCases(Cases):
@@ -92,7 +93,7 @@ class WordCases(Cases):
         if len(word.morphemes) > 0:
             morphemes = map(lambda x: x.morpheme, word.morphemes)
 
-        self.add_case(config.CASE_TYPE_POS_WORD, word.word, pos)
+        self.add_case(config.CASE_TYPE_POS_WORD, word.word.lower(), pos)
 
         if str(word.word[0]).isupper():
             self.add_case(config.CASE_TYPE_POS_WORD_CASE, "True", pos)
@@ -106,15 +107,15 @@ class WordCases(Cases):
         if suffix_word is not None:
             self.add_case(config.CASE_TYPE_POS_SUFFIX_WORD, suffix_word, pos)
 
-        if prefix_pos is not None:
+        if prefix_pos is not "" and prefix_pos is not None:
             self.add_case(config.CASE_TYPE_POS_PREFIX_POS, prefix_pos, pos)
 
-        if suffix_pos is not None:
+        if suffix_pos is not "" and suffix_pos is not None:
             self.add_case(config.CASE_TYPE_POS_SUFFIX_POS, suffix_pos, pos)
 
         if len(morphemes) > 0:
             for morpheme in morphemes:
-                self.add_case(config.CASE_TYPE_POS_MORPHEME, morpheme, pos)
+                self.add_case(config.CASE_TYPE_POS_MORPHEME, morpheme.lower(), pos)
 
 
 class MorphemeCases(Cases):

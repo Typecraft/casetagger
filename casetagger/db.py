@@ -113,7 +113,7 @@ class DbHandler:
         else:
             case_from_counter = CaseFromCounter(type=case.type, case_from=case.case_from)
             self.insert_case(case)
-            self.insert_case_counter(case_from_counter)
+            self.insert_or_increment_case_counter(case_from_counter)
 
     def insert_case_counter(self, case_from_counter):
         """

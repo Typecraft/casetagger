@@ -12,7 +12,7 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click>=6.0',
     'sqlalchemy',
-    'tc_xml_python'
+    'tc_xml_python>=0.2.1'
 ]
 
 test_requirements = [

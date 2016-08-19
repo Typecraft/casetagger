@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from tc_xml_python.models.text import Text
-from tc_xml_python.models.phrase import Phrase
-from tc_xml_python.models.word import Word
-from tc_xml_python.models.morpheme import Morpheme
+from tc_xml_python.models import Text
+from tc_xml_python.models import Phrase
+from tc_xml_python.models import Word
+from tc_xml_python.models import Morpheme
 
 from casetagger.tagger import CaseTagger
-from casetagger.models.db import Case
+from casetagger.models.db import Case, CaseFromCounter
 
 import random
 
@@ -98,18 +98,16 @@ class TestTagger(object):
         session = CaseTagger.db.db_factory()
 
         results = session.query(Case).all()
+        results_2 = session.query(CaseFromCounter).all()
 
         assert len(results) > 0
-
-        #for result in results:
-        #    print(result)
+        assert len(results_2) > 0
 
         CaseTagger.db._clear_database()
 
     def test_tag_simple_text(self):
         CaseTagger.instantiate_db("test")
         CaseTagger.train(self.detail_text)
-        CaseTagger.db._clear_database()
 
         phrase = Phrase()
         phrase.phrase = "This is a phrase"
@@ -129,14 +127,28 @@ class TestTagger(object):
         phrase.add_word(word_3)
         phrase.add_word(word_4)
 
+        morpheme_1 = Morpheme()
+        morpheme_2 = Morpheme()
+        morpheme_3 = Morpheme()
+        morpheme_4 = Morpheme()
+
+        morpheme_1.morpheme = "This"
+        morpheme_2.morpheme = "is"
+        morpheme_3.morpheme = "a"
+        morpheme_4.morpheme = "phrase"
+
+        word_1.add_morpheme(morpheme_1)
+        word_2.add_morpheme(morpheme_2)
+        word_3.add_morpheme(morpheme_3)
+        word_4.add_morpheme(morpheme_4)
+
         text = Text()
         text.add_phrase(phrase)
 
         CaseTagger.tag_text(text)
 
-        for phrase in text.phrases:
-            for word in phrase.words:
-                print(word.word + ": " + word.pos)
+
+        CaseTagger.db._clear_database()
 
     @classmethod
     def teardown_class(cls):

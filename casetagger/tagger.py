@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from tc_xml_python.models.phrase import Phrase
-from tc_xml_python.models.text import Text
+from tc_xml_python.models import Phrase
+from tc_xml_python.models import Text
 
 import casetagger.config as config
 
@@ -52,11 +52,9 @@ class CaseTagger:
             for word in phrase.words:
 
                 # If we don't have an option to ignore words with empty poses
-
                 if not (word.pos is None and not config.REGISTER_EMPTY_POS):
                     word_cases = WordCases(word, phrase)
                     for case_mock in word_cases:
-                        print(case_mock)
                         db.insert_or_increment_case(
                             Case(type=case_mock.type, case_from=case_mock.case_from, case_to=case_mock.case_to))
 
@@ -94,7 +92,7 @@ class CaseTagger:
                     word_cases = WordCases(word, phrase)
 
                     # Fetches all cases matching the type and case_from of the ones we have
-                    db.fetch_all_to_cases(word_cases)
+                    word_cases = db.fetch_all_to_cases(word_cases)
 
                     most_likely_pos = word_cases.merge()
 
@@ -103,7 +101,7 @@ class CaseTagger:
                     for morpheme in word.morphemes:
                         morpheme_cases = MorphemeCases(morpheme, word, phrase)
 
-                        db.fetch_all_to_cases(morpheme_cases)
+                        morpheme_cases = db.fetch_all_to_cases(morpheme_cases)
 
                         most_likely_gloss = morpheme_cases.merge()
                         morpheme.glosses = most_likely_gloss.split(".")

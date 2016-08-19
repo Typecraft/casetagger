@@ -1,5 +1,5 @@
 from casetagger.models.db import Case, CaseRelation, CaseFromCounter
-from tc_xml_python.models.morpheme import Morpheme
+from tc_xml_python.models import Morpheme
 
 
 def copy_case(c):

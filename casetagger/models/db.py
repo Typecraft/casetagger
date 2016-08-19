@@ -33,6 +33,9 @@ class CaseFromCounter(Base):
     case_from = Column(String, index=True)
     occurrences = Column(Integer, default=1)
 
+    def __str__(self):
+        return "[CaseCounter#%d]: %d %s => %d" % (self.id, self.type, self.case_from, self.occurrences)
+
 
 class CaseRelation(Base):
     __tablename__ = 'case_relation'
