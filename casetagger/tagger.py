@@ -65,7 +65,9 @@ class CaseTagger:
                         morpheme_cases = MorphemeCases(morpheme, word, phrase)
 
                         for case_mock in morpheme_cases:
-                            db.insert_or_increment_case(Case(case_mock.type, case_mock.case_from, case_mock.case_to))
+                            db.insert_or_increment_case(Case(type=case_mock.type,
+                                                             case_from=case_mock.case_from,
+                                                             case_to=case_mock.case_to))
 
     @classmethod
     def tag_text(cls, text):

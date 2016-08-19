@@ -103,6 +103,8 @@ class TestTagger(object):
         assert len(results) > 0
         assert len(results_2) > 0
 
+        print len(results)
+
         CaseTagger.db._clear_database()
 
     def test_tag_simple_text(self):
@@ -147,10 +149,10 @@ class TestTagger(object):
 
         CaseTagger.tag_text(text)
 
-
         CaseTagger.db._clear_database()
 
     @classmethod
     def teardown_class(cls):
-        CaseTagger.db._destroy_database()
+        pass
+        #CaseTagger.db._destroy_database()
 

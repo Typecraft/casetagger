@@ -1,6 +1,8 @@
 import casetagger.config as config
 import casetagger.models.db as models
 
+from casetagger.models.util import get_glosses_concatenated
+
 import math
 
 from tc_xml_python.models import Phrase
@@ -36,6 +38,7 @@ class Cases:
     """
     def __init__(self):
         self.cases = []
+        self.max_occurrence_count = 0
 
     def add_case(self, case_type, case_from, case_to, occurrences=1, prob=0):
         self.cases.append(CaseMock(case_type, case_from, case_to, occurrences, prob))
@@ -56,18 +59,58 @@ class Cases:
 
         It takes a set of cases, and "merges" them into the result case which is most likely.
 
-        The aglorithm works in the following manner:
+        The algorithm works in the following manner:
 
+            1. We have n cases we want to merge.
+            2. We take n/2 tuples
+            3. For each tuple, we eliminate the least likely one
+            4. If n initially was 2, and we have one case remaining, we are done.
+               Else we go back to step 1 and reiterate.
 
         :return:
         """
 
-        for case in self.cases:
-            print("Merging: " + str(case))
-        return "N"
+        merged_cases = self.cases
+        if len(self.cases) == 0:
+            return ""
 
-    @classmethod
-    def adjust_probability(self, probability, occurrences, max_occurences):
+        self.max_occurrence_count = max(map(lambda case: case.occurrences, self.cases))
+
+        while len(merged_cases) > 1:
+            next_merged_cases = []
+            for i in range(0, len(merged_cases), 2):
+                print(i)
+                to_be_merged = merged_cases[i:i+2]
+
+                if len(to_be_merged) == 1:
+                    next_merged_cases.append(to_be_merged[0])
+                else:
+                    next_merged_cases.append(self.merge_cases(to_be_merged[0], to_be_merged[1]))
+
+            merged_cases = next_merged_cases
+
+        print(merged_cases[0].case_to)
+        return merged_cases[0].case_to
+
+    def merge_cases(self, case_1, case_2):
+        """
+        Merges two cases, returning the most likely case
+        :param case_1:
+        :param case_2:
+        :return:
+        """
+
+        if config.ADJUST_FOR_OCCURRENCE:
+            prob_1 = Cases.adjust_probability(case_1.prob, case_1.occurrences, self.max_occurrence_count)
+            prob_2 = Cases.adjust_probability(case_2.prob, case_2.occurrences, self.max_occurrence_count)
+        else:
+            prob_1 = case_1.prob
+            prob_2 = case_2.prob
+
+        return case_1 if prob_1 > prob_2 else case_2
+
+    @staticmethod
+    def adjust_probability(probability, occurrences, max_occurrences):
         """
         This method takes a probability, an occurrence-count, and a base-line max-occurrences,
         from which it calculates an adjusted probability.
@@ -75,8 +118,8 @@ class Cases:
         The idea behind this is to adjust probabilities which rely on "few" occurrence-counts to be more
         insecure than probabilities which have high occurrence counts.
 
-        Quite simply, the scaling factor is log_a(occurences)/log_a(max_occurrences) where a is some
-        base, 1000 by default.
+        Quite simply, the scaling factor is log_a(occurences+1)/log_a(max_occurrences+1) where a is some
+        base, 1000 by default. (+1 is to avoid division by 0)
 
         Example: We have a probability 0.8 with 2000 occurrences, and max_occurrences 8000
 
@@ -87,13 +130,14 @@ class Cases:
 
         Note that probability adjusting can be turned off by setting config.ADJUST_FOR_OCCURRENCE to false
 
+        :param max_occurrences:
+        :param occurrences:
         :param probability:
-        :param occurences:
-        :param max_occurences:
         :return:
         """
 
-        return probability * math.log(occurrences, config.OCCURRENCE_ORDER_OF_MAGNITUDE) / math.log(max_occurences, config.OCCURRENCE_ORDER_OF_MAGNITUDE)
+        return probability * math.log(occurrences+1, config.OCCURRENCE_ORDER_OF_MAGNITUDE) / math.log(max_occurrences+1, config.OCCURRENCE_ORDER_OF_MAGNITUDE)
+
 
 class WordCases(Cases):
     def __init__(self, word, phrase):
@@ -158,14 +202,14 @@ class WordCases(Cases):
 class MorphemeCases(Cases):
     def __init__(self, morpheme, word, phrase):
         """
-        Creates the MorphemeTargetCases object.
+        Creates the MorphemeTargetCases object, registering all valid cases.
 
         :param morpheme:
         :param word:
         :param phrase:
         """
         Cases.__init__(self)
-        word_index = word.morphemes.index(morpheme)
+        morph_index = word.morphemes.index(morpheme)
         morphs_length = len(word.morphemes)
 
         # Case variables
@@ -173,18 +217,62 @@ class MorphemeCases(Cases):
         suffix_morph = None
         prefix_gloss = None
         suffix_gloss = None
-        gloss = ".".join(morpheme.glosses)
+        gloss = get_glosses_concatenated(morpheme)
+
+        if morph_index > 0:
+            prefix_morph = word.morphemes[morph_index - 1].word
+            prefix_gloss = get_glosses_concatenated(word.morphemes[morph_index - 1].glosses)
+
+        if morph_index < morphs_length - 1:
+            suffix_morph = word.morphemes[morph_index + 1]
+            suffix_gloss = get_glosses_concatenated(word.morphemes[morph_index + 1].glosses)
+
+        # Case variables
+        prefix_word = None
+        suffix_word = None
+        prefix_pos = None
+        suffix_pos = None
+
+        word_index = phrase.words.index(word)
+        word_length = len(phrase.words)
 
         if word_index > 0:
-            prefix_morph = word.morphemes[0].word
-            prefix_gloss = word.morphemes[0].pos
+            prefix_word = phrase.words[word_index - 1].word
+            prefix_pos = phrase.words[word_index - 1].pos
 
-        if word_index < morphs_length - 1:
-            suffix_morph = word.morphemes[word_index + 1]
-            suffix_gloss = word.morphemes[0].pos
+        if word_index < word_length - 1:
+            suffix_word = phrase.words[word_index + 1].word
+            suffix_pos = phrase.words[word_index + 1].pos
 
+        self.add_case(config.CASE_TYPE_GLOSS_MORPH, morpheme.morpheme.lower(), gloss)
+        self.add_case(config.CASE_TYPE_GLOSS_WORD, morpheme.morpheme.lower(), word.word.lower())
 
+        if str(word.word[0]).isupper():
+            self.add_case(config.CASE_TYPE_GLOSS_WORD_CASE, "True", gloss)
 
+        if str(word.word.lower() != word.word):
+            self.add_case(config.CASE_TYPE_GLOSS_WORD_CONTAINS_CASE, "True", gloss)
 
-    def merge(self):
-        pass
+        if prefix_word is not None:
+            self.add_case(config.CASE_TYPE_GLOSS_PREFIX_WORD, prefix_word, gloss)
+
+        if suffix_word is not None:
+            self.add_case(config.CASE_TYPE_GLOSS_SUFFIX_WORD, suffix_word, gloss)
+
+        if prefix_pos is not None:
+            self.add_case(config.CASE_TYPE_GLOSS_PREFIX_POS, prefix_pos, gloss)
+
+        if suffix_pos is not None:
+            self.add_case(config.CASE_TYPE_GLOSS_SUFFIX_POS, suffix_pos, gloss)
+
+        if prefix_gloss is not None:
+            self.add_case(config.CASE_TYPE_GLOSS_PREFIX_GLOSS, prefix_gloss, gloss)
+
+        if suffix_gloss is not None:
+            self.add_case(config.CASE_TYPE_GLOSS_SUFFIX_GLOSS, suffix_gloss, gloss)
+
+        if prefix_morph is not None:
+            self.add_case(config.CASE_TYPE_GLOSS_PREFIX_MORPH, prefix_morph, gloss)
+
+        if suffix_morph is not None:
+            self.add_case(config.CASE_TYPE_GLOSS_SUFFIX_MORPH, suffix_morph, gloss)
