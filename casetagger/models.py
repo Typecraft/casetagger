@@ -181,7 +181,7 @@ class WordCases(Cases):
             suffix_pos = phrase.words[word_index + 1].pos
 
         if len(word.morphemes) > 0:
-            morphemes = map(lambda x: x.morpheme, word.morphemes)
+            morphemes = list(map(lambda x: x.morpheme, word.morphemes))
 
         self.add_case(config.CASE_TYPE_POS_WORD, word.word.lower(), pos)
 
