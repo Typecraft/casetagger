@@ -11,7 +11,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.0',
-    'tc_xml_python>=0.2.1'
+    'tc_xml_python>=0.2.2'
 ]
 
 test_requirements = [
