@@ -36,6 +36,17 @@ class TestDatabase(object):
         # If no exception is thrown, we have succeeded, hurray!
         self.db._clear_database()
 
+    def test_insert_unicode(self):
+        case_1 = Case(config.CASE_TYPE_GLOSS_PREFIX_GLOSS, u"åøle", u"øÆEfEe")
+
+        self.db.insert_case(case_1)
+
+        case_fetched = self.db.get_case(config.CASE_TYPE_GLOSS_PREFIX_GLOSS, u"åøle", u"øÆEfEe")
+
+        assert case_fetched == case_1
+
+        self.db._clear_database()
+
     def test_get_case(self):
         case_1 = Case(config.CASE_TYPE_GLOSS_PREFIX_GLOSS, "from", "to")
 

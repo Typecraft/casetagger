@@ -148,5 +148,5 @@ class TestTagger(object):
     @classmethod
     def teardown_class(cls):
         pass
-        #CaseTagger.db._destroy_database()
+        CaseTagger.db._destroy_database()
 

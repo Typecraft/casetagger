@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import casetagger.config as config
+from casetagger import logger
 from casetagger.db import DbHandler
 from casetagger.models import WordCases, MorphemeCases
 from tc_xml_python.models import Text
@@ -44,21 +45,31 @@ class CaseTagger:
         else:
             db = DbHandler(language, config.USE_MEMORY_DB)
 
+        # Used for debug only
+        phrase_len = len(text.phrases)
+        i = 0
+
         for phrase in text.phrases:
+
+            cursor = db.conn.cursor()
+
+            i += 1
+            logger.debug("Training with phrase " + str(i) + "/" + str(phrase_len) + "\r")
             for word in phrase.words:
 
                 # If we don't have an option to ignore words with empty poses
                 if not (word.pos is None and not config.REGISTER_EMPTY_POS):
                     word_cases = WordCases(word, phrase)
-                    db.insert_cases(word_cases)
+                    db.insert_cases(word_cases, cursor)
 
                 for morpheme in word.morphemes:
-
                     # If we don't want to ignore empty glosses
                     if not (len(morpheme.glosses) == 0 and not config.REGISTER_EMPTY_GLOSS):
                         morpheme_cases = MorphemeCases(morpheme, word, phrase)
 
-                        db.insert_cases(morpheme_cases)
+                        db.insert_cases(morpheme_cases, cursor)
+
+            db.conn.commit()
 
     @classmethod
     def tag_text(cls, text):
