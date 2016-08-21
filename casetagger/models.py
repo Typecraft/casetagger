@@ -229,12 +229,12 @@ class MorphemeCases(Cases):
         gloss = get_glosses_concatenated(morpheme)
 
         if morph_index > 0:
-            prefix_morph = word.morphemes[morph_index - 1].word
-            prefix_gloss = get_glosses_concatenated(word.morphemes[morph_index - 1].glosses)
+            prefix_morph = word.morphemes[morph_index - 1].morpheme
+            prefix_gloss = get_glosses_concatenated(word.morphemes[morph_index - 1])
 
         if morph_index < morphs_length - 1:
-            suffix_morph = word.morphemes[morph_index + 1]
-            suffix_gloss = get_glosses_concatenated(word.morphemes[morph_index + 1].glosses)
+            suffix_morph = word.morphemes[morph_index + 1].morpheme
+            suffix_gloss = get_glosses_concatenated(word.morphemes[morph_index + 1])
 
         # Case variables
         prefix_word = None
