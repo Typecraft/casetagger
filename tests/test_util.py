@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from casetagger.models.util import get_glosses_concatenated
+from casetagger.util import get_glosses_concatenated
 from tc_xml_python.models import Morpheme
 
 

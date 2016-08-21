@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from tc_xml_python.models import Phrase
-from tc_xml_python.models import Text
-
 import casetagger.config as config
-
-from casetagger.models.db import Case, CaseFromCounter, CaseRelation
-from casetagger.models.extras import WordCases, MorphemeCases
 from casetagger.db import DbHandler
+from casetagger.models import WordCases, MorphemeCases
+from tc_xml_python.models import Text
 
 
 class CaseTagger:
@@ -54,9 +50,7 @@ class CaseTagger:
                 # If we don't have an option to ignore words with empty poses
                 if not (word.pos is None and not config.REGISTER_EMPTY_POS):
                     word_cases = WordCases(word, phrase)
-                    for case_mock in word_cases:
-                        db.insert_or_increment_case(
-                            Case(type=case_mock.type, case_from=case_mock.case_from, case_to=case_mock.case_to))
+                    db.insert_cases(word_cases)
 
                 for morpheme in word.morphemes:
 
@@ -64,10 +58,7 @@ class CaseTagger:
                     if not (len(morpheme.glosses) == 0 and not config.REGISTER_EMPTY_GLOSS):
                         morpheme_cases = MorphemeCases(morpheme, word, phrase)
 
-                        for case_mock in morpheme_cases:
-                            db.insert_or_increment_case(Case(type=case_mock.type,
-                                                             case_from=case_mock.case_from,
-                                                             case_to=case_mock.case_to))
+                        db.insert_cases(morpheme_cases)
 
     @classmethod
     def tag_text(cls, text):
@@ -94,16 +85,18 @@ class CaseTagger:
                     word_cases = WordCases(word, phrase)
 
                     # Fetches all cases matching the type and case_from of the ones we have
-                    word_cases = db.fetch_all_to_cases(word_cases)
+                    word_cases = db.get_all_to_cases(word_cases)
 
                     most_likely_pos = word_cases.merge()
+                    print(most_likely_pos)
 
                     word.pos = most_likely_pos
 
                     for morpheme in word.morphemes:
                         morpheme_cases = MorphemeCases(morpheme, word, phrase)
 
-                        morpheme_cases = db.fetch_all_to_cases(morpheme_cases)
+                        morpheme_cases = db.get_all_to_cases(morpheme_cases)
 
                         most_likely_gloss = morpheme_cases.merge()
                         morpheme.glosses = most_likely_gloss.split(".")
+

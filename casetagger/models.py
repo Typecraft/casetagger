@@ -1,19 +1,13 @@
-import casetagger.config as config
-import casetagger.models.db as models
-
-from casetagger.models.util import get_glosses_concatenated
-
 import math
 
+import casetagger.config as config
+from casetagger.util import get_glosses_concatenated
 from tc_xml_python.models import Phrase
 
 
-class CaseMock:
+class Case:
     """
     Class we use to mock the db-version of a Case.
-
-    This version gives a bit more flexibility in terms of values we might want added,
-    as well as not having to care about persistance.
     """
     def __init__(self, case_type, case_from, case_to, occurrences=1, prob=0):
         self.type = case_type
@@ -22,11 +16,24 @@ class CaseMock:
         self.occurrences = occurrences
         self.prob = prob
 
-    def set_prob(self, prob):
-        self.prob = prob
+    def __eq__(self, other):
+        return self.type == other.type and self.case_from == other.case_from and self.case_to == other.case_to
 
     def __str__(self):
         return "%d %s => %s [occurences=%s, prob=%s]" % (self.type, self.case_from, self.case_to, self.occurrences, self.prob)
+
+
+class CaseFromCounter:
+    """
+    Class we use to mock the db-data of a CaseFromCounter
+    """
+    def __init__(self, case_type, case_from, occurrences=1):
+        self.type = case_type
+        self.case_from = case_from
+        self.occurrences = occurrences
+
+    def __str__(self):
+        return "%d %s => occurences %d" % (self.type, self.case_from, self.occurrences)
 
 
 class Cases:
@@ -41,7 +48,11 @@ class Cases:
         self.max_occurrence_count = 0
 
     def add_case(self, case_type, case_from, case_to, occurrences=1, prob=0):
-        self.cases.append(CaseMock(case_type, case_from, case_to, occurrences, prob))
+        self.cases.append(Case(case_type, case_from, case_to, occurrences, prob))
+
+    def add_all_cases(self, cases):
+        for case in cases:
+            self.add_case(case.type, case.case_from, case.case_to, case.occurrences)
 
     def from_array(self, array):
         for case in array:
@@ -79,7 +90,6 @@ class Cases:
         while len(merged_cases) > 1:
             next_merged_cases = []
             for i in range(0, len(merged_cases), 2):
-                print(i)
                 to_be_merged = merged_cases[i:i+2]
 
                 if len(to_be_merged) == 1:
@@ -89,7 +99,6 @@ class Cases:
 
             merged_cases = next_merged_cases
 
-        print(merged_cases[0].case_to)
         return merged_cases[0].case_to
 
     def merge_cases(self, case_1, case_2):
