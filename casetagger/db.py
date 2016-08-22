@@ -96,7 +96,7 @@ class DbHandler:
         if should_commit:
             self.conn.commit()
 
-    def insert_cases(self, cases, cursor):
+    def insert_cases(self, cases, cursor=None):
         should_commit = cursor is None
 
         if cursor is None:

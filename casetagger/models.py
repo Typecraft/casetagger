@@ -185,10 +185,11 @@ class WordCases(Cases):
 
         self.add_case(config.CASE_TYPE_POS_WORD, word.word.lower(), pos)
 
-        if str(word.word[0]).isupper():
-            self.add_case(config.CASE_TYPE_POS_WORD_CASE, "True", pos)
+        if len(word.word) > 0:
+            if word.word[0].isupper():
+                self.add_case(config.CASE_TYPE_POS_WORD_CASE, "True", pos)
 
-        if str(word.word.lower() != word.word):
+        if word.word.lower() != word.word:
             self.add_case(config.CASE_TYPE_POS_WORD_CONTAINS_CASE, "True", pos)
 
         if prefix_word is not None:
@@ -256,10 +257,11 @@ class MorphemeCases(Cases):
         self.add_case(config.CASE_TYPE_GLOSS_MORPH, morpheme.morpheme.lower(), gloss)
         self.add_case(config.CASE_TYPE_GLOSS_WORD, morpheme.morpheme.lower(), word.word.lower())
 
-        if str(word.word[0]).isupper():
-            self.add_case(config.CASE_TYPE_GLOSS_WORD_CASE, "True", gloss)
+        if len(word.word) > 0:
+            if word.word[0].isupper():
+                self.add_case(config.CASE_TYPE_GLOSS_WORD_CASE, "True", gloss)
 
-        if str(word.word.lower() != word.word):
+        if word.word.lower() != word.word:
             self.add_case(config.CASE_TYPE_GLOSS_WORD_CONTAINS_CASE, "True", gloss)
 
         if prefix_word is not None:

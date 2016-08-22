@@ -99,7 +99,6 @@ class CaseTagger:
                     word_cases = db.get_all_to_cases(word_cases)
 
                     most_likely_pos = word_cases.merge()
-                    print(most_likely_pos)
 
                     word.pos = most_likely_pos
 
