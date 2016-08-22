@@ -1,6 +1,20 @@
 import os.path
 
 """
+"""
+VERSION = "0.1.1"
+
+"""
+Verbosity level.
+
+0 = Print nothing (default)
+1 = Print errors and start-finish messages
+2 = Print debug messages
+
+"""
+VERBOSITY_LEVEL = 0
+
+"""
 Base directory of config.
 """
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))

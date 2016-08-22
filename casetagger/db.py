@@ -96,13 +96,17 @@ class DbHandler:
         if should_commit:
             self.conn.commit()
 
-    def insert_cases(self, cases):
-        cursor = self.conn.cursor()
+    def insert_cases(self, cases, cursor=None):
+        should_commit = cursor is None
+
+        if cursor is None:
+            cursor = self.conn.cursor()
 
         for case in cases:
             self.insert_case(case, cursor)
 
-        self.conn.commit()
+        if should_commit:
+            self.conn.commit()
 
     def insert_case_counter(self, case_counter, cursor=None):
         assert isinstance(case_counter, CaseFromCounter) or isinstance(case_counter, Case)
