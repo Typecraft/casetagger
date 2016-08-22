@@ -108,15 +108,23 @@ class Cases:
         :param case_2:
         :return:
         """
+        prob_1 = case_1.prob
+        prob_2 = case_2.prob
 
-        if config.ADJUST_FOR_OCCURRENCE:
-            prob_1 = Cases.adjust_probability(case_1.prob, case_1.occurrences, self.max_occurrence_count)
-            prob_2 = Cases.adjust_probability(case_2.prob, case_2.occurrences, self.max_occurrence_count)
-        else:
-            prob_1 = case_1.prob
-            prob_2 = case_2.prob
+        if config.ADJUST_FOR_IMPORTANCE:
+            prob_1 = Cases.adjust_importance(prob_1, case_1.type)
+            prob_2 = Cases.adjust_importance(prob_2, case_2.type)
 
         return case_1 if prob_1 > prob_2 else case_2
+
+    @staticmethod
+    def adjust_importance(probability, case_type):
+        if case_type not in config.CASE_IMPORTANCE:
+            return probability
+
+        importance = config.CASE_IMPORTANCE[case_type]
+
+        return importance * probability
 
     @staticmethod
     def adjust_probability(probability, occurrences, max_occurrences):
