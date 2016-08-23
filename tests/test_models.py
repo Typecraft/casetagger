@@ -38,8 +38,8 @@ class TestModels(object):
         assert 4 in types
         assert 32 in types
         assert 128 in types
-        assert not 2 in types
-        assert not 16 in types
+        assert 2 not in types
+        assert 16 not in types
 
     def test_cases_adjust_importance(self):
         config.CASE_IMPORTANCE = {

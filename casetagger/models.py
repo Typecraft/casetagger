@@ -289,7 +289,7 @@ class MorphemeCases(Cases):
             suffix_pos = phrase.words[word_index + 1].pos
 
         self.add_case(config.CASE_TYPE_GLOSS_MORPH, morpheme.morpheme.lower(), gloss)
-        self.add_case(config.CASE_TYPE_GLOSS_WORD, morpheme.morpheme.lower(), word.word.lower())
+        self.add_case(config.CASE_TYPE_GLOSS_WORD, morpheme.morpheme.lower(), gloss)
 
         if len(word.word) > 0:
             if word.word[0].isupper():
@@ -352,8 +352,11 @@ class TestResult:
                    self.morphemes_correct, self.morpheme_accuracy())
 
         if config.PRINT_TEST_ERROR_DETAIL:
-            res += "Word errors:\n" + unicode(self.wrong_words)
-            res += "Morpheme errors:\n" + unicode(self.wrong_morphemes)
+            res += "Word errors:\n"
+            for word_tuple in self.wrong_words:
+                res += "\nCORRECT:\n" + str(word_tuple[0]) + "\nWRONG:\n" + str(word_tuple[1])
+            for morph_tuple in self.wrong_morphemes:
+                res += "\nCORRECT:\n" + str(morph_tuple[0]) + "\nWRONG:\n" + str(morph_tuple[1])
 
         return res
 
