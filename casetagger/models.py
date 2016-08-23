@@ -369,7 +369,7 @@ class TestResult:
         morphemes_2 = get_text_morphemes(text_2)
 
         word_errors = filter(lambda x: x[0].pos != x[1].pos, zip(words_1, words_2))
-        morpheme_errors = filter(lambda x: x[0].get_glosses_concatenated() != x[1].get_glosses_concatenated(),
+        morpheme_errors = filter(lambda x: x[0].get_glosses_concatenated(True) != x[1].get_glosses_concatenated(True),
                                  zip(morphemes_1, morphemes_2))
 
         words_total = len(words_1)

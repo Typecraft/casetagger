@@ -120,7 +120,6 @@ class CaseTagger:
         if not isinstance(text, Text):
             raise Exception
 
-        language = text.language
         copied_text = copy.deepcopy(text)
 
         CaseTagger.tag_text(text)
