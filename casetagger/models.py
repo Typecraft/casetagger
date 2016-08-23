@@ -1,7 +1,9 @@
 import math
 
 import casetagger.config as config
-from casetagger.util import get_glosses_concatenated
+import itertools
+from casetagger import logger
+from casetagger.util import get_glosses_concatenated, get_text_words, get_text_morphemes
 from tc_xml_python.models import Phrase
 
 
@@ -15,6 +17,14 @@ class Case:
         self.case_to = case_to
         self.occurrences = occurrences
         self.prob = prob
+
+    def get_case_types(self):
+        types = []
+        for i in range(0, 32):
+            if (self.type & (1 << i)) > 0:
+                types.append(1 << i)
+
+        return types
 
     def __eq__(self, other):
         return self.type == other.type and self.case_from == other.case_from and self.case_to == other.case_to
@@ -58,6 +68,19 @@ class Cases:
         for case in array:
             self.add_case(case.type, case.case_from, case.case_to, case.occurrences)
 
+    def create_tuple_cases(self):
+        # TODO: Filter and remove morpheme cases?
+        case_combinations = itertools.combinations(self.cases, 2)
+
+        for case_tuple in case_combinations:
+            case_1 = case_tuple[0]
+            case_2 = case_tuple[1]
+
+            # Note that case_to will be the same for all tuples
+            self.add_case(case_1.type | case_2.type,
+                          case_1.case_from + case_2.case_from,
+                          case_1.case_to)
+
     def __iter__(self):
         return self.cases.__iter__()
 
@@ -99,6 +122,7 @@ class Cases:
 
             merged_cases = next_merged_cases
 
+        logger.debug("Found dominating case: " + unicode(merged_cases[0]))
         return merged_cases[0].case_to
 
     def merge_cases(self, case_1, case_2):
@@ -108,15 +132,22 @@ class Cases:
         :param case_2:
         :return:
         """
+        prob_1 = case_1.prob
+        prob_2 = case_2.prob
 
-        if config.ADJUST_FOR_OCCURRENCE:
-            prob_1 = Cases.adjust_probability(case_1.prob, case_1.occurrences, self.max_occurrence_count)
-            prob_2 = Cases.adjust_probability(case_2.prob, case_2.occurrences, self.max_occurrence_count)
-        else:
-            prob_1 = case_1.prob
-            prob_2 = case_2.prob
+        if config.ADJUST_FOR_IMPORTANCE:
+            prob_1 = Cases.adjust_importance(prob_1, case_1)
+            prob_2 = Cases.adjust_importance(prob_2, case_2)
 
         return case_1 if prob_1 > prob_2 else case_2
+
+    @staticmethod
+    def adjust_importance(probability, case):
+        case_types = case.get_case_types()
+
+        importance = sum(map(lambda _case_type: config.CASE_IMPORTANCE[_case_type], case_types))
+
+        return importance * probability
 
     @staticmethod
     def adjust_probability(probability, occurrences, max_occurrences):
@@ -192,21 +223,24 @@ class WordCases(Cases):
         if word.word.lower() != word.word:
             self.add_case(config.CASE_TYPE_POS_WORD_CONTAINS_CASE, "True", pos)
 
-        if prefix_word is not None:
+        if not is_empty_ignore(prefix_word):
             self.add_case(config.CASE_TYPE_POS_PREFIX_WORD, prefix_word, pos)
 
-        if suffix_word is not None:
+        if not is_empty_ignore(suffix_word):
             self.add_case(config.CASE_TYPE_POS_SUFFIX_WORD, suffix_word, pos)
 
-        if prefix_pos is not "" and prefix_pos is not None:
+        if not is_empty_ignore(prefix_pos):
             self.add_case(config.CASE_TYPE_POS_PREFIX_POS, prefix_pos, pos)
 
-        if suffix_pos is not "" and suffix_pos is not None:
+        if not is_empty_ignore(suffix_pos):
             self.add_case(config.CASE_TYPE_POS_SUFFIX_POS, suffix_pos, pos)
 
         if len(morphemes) > 0:
             for morpheme in morphemes:
-                self.add_case(config.CASE_TYPE_POS_MORPHEME, morpheme.lower(), pos)
+                if not is_empty_ignore(morpheme):
+                    self.add_case(config.CASE_TYPE_POS_MORPHEME, morpheme.lower(), pos)
+
+        self.create_tuple_cases()
 
 
 class MorphemeCases(Cases):
@@ -255,7 +289,7 @@ class MorphemeCases(Cases):
             suffix_pos = phrase.words[word_index + 1].pos
 
         self.add_case(config.CASE_TYPE_GLOSS_MORPH, morpheme.morpheme.lower(), gloss)
-        self.add_case(config.CASE_TYPE_GLOSS_WORD, morpheme.morpheme.lower(), word.word.lower())
+        self.add_case(config.CASE_TYPE_GLOSS_WORD, morpheme.morpheme.lower(), gloss)
 
         if len(word.word) > 0:
             if word.word[0].isupper():
@@ -264,26 +298,112 @@ class MorphemeCases(Cases):
         if word.word.lower() != word.word:
             self.add_case(config.CASE_TYPE_GLOSS_WORD_CONTAINS_CASE, "True", gloss)
 
-        if prefix_word is not None:
+        if not is_empty_ignore(prefix_word):
             self.add_case(config.CASE_TYPE_GLOSS_PREFIX_WORD, prefix_word, gloss)
 
-        if suffix_word is not None:
+        if not is_empty_ignore(suffix_word):
             self.add_case(config.CASE_TYPE_GLOSS_SUFFIX_WORD, suffix_word, gloss)
 
-        if prefix_pos is not None:
+        if not is_empty_ignore(prefix_pos):
             self.add_case(config.CASE_TYPE_GLOSS_PREFIX_POS, prefix_pos, gloss)
 
-        if suffix_pos is not None:
+        if not is_empty_ignore(suffix_pos):
             self.add_case(config.CASE_TYPE_GLOSS_SUFFIX_POS, suffix_pos, gloss)
 
-        if prefix_gloss is not None:
+        if not is_empty_ignore(prefix_gloss):
             self.add_case(config.CASE_TYPE_GLOSS_PREFIX_GLOSS, prefix_gloss, gloss)
 
-        if suffix_gloss is not None:
+        if not is_empty_ignore(suffix_gloss):
             self.add_case(config.CASE_TYPE_GLOSS_SUFFIX_GLOSS, suffix_gloss, gloss)
 
-        if prefix_morph is not None:
+        if not is_empty_ignore(prefix_morph):
             self.add_case(config.CASE_TYPE_GLOSS_PREFIX_MORPH, prefix_morph, gloss)
 
-        if suffix_morph is not None:
+        if not is_empty_ignore(suffix_morph):
             self.add_case(config.CASE_TYPE_GLOSS_SUFFIX_MORPH, suffix_morph, gloss)
+
+
+class TestResult:
+    def __init__(self, title = "SomeTest", words_total=0, morphemes_total=0, words_correct=0, morphemes_correct=0,
+                       wrong_words=[], wrong_morphemes=[]):
+        self.title = title
+        self.words_total = words_total
+        self.morphemes_total = morphemes_total
+        self.words_correct = words_correct
+        self.morphemes_correct = morphemes_correct
+        self.wrong_words = wrong_words
+        self.wrong_morphemes = wrong_morphemes
+
+    def word_accuracy(self):
+        return 100 * float(self.words_correct) / float(self.words_total)
+
+    def morpheme_accuracy(self):
+        return 100 * float(self.morphemes_correct) / float(self.morphemes_total)
+
+    def __str__(self):
+        res = """
+            TestResult for %s:
+                Words total = %s
+                Morphemes total = %s
+                Words correctly tagged = %s (%.2f %%)
+                Morphemes correctly tagged = %s (%.2f %%)
+            """ % (self.title, self.words_total, self.morphemes_total,
+                   self.words_correct, self.word_accuracy(),
+                   self.morphemes_correct, self.morpheme_accuracy())
+
+        if config.PRINT_TEST_ERROR_DETAIL:
+            res += "Word errors:\n"
+            for word_tuple in self.wrong_words:
+                res += "\nCORRECT:\n" + str(word_tuple[0]) + "\nWRONG:\n" + str(word_tuple[1])
+            for morph_tuple in self.wrong_morphemes:
+                res += "\nCORRECT:\n" + str(morph_tuple[0]) + "\nWRONG:\n" + str(morph_tuple[1])
+
+        return res
+
+    @staticmethod
+    def from_data(text_1, text_2):
+        words_1 = get_text_words(text_1)
+        words_2 = get_text_words(text_2)
+
+        morphemes_1 = get_text_morphemes(text_1)
+        morphemes_2 = get_text_morphemes(text_2)
+
+        word_errors = filter(lambda x: x[0].pos != x[1].pos, zip(words_1, words_2))
+        morpheme_errors = filter(lambda x: x[0].get_glosses_concatenated() != x[1].get_glosses_concatenated(),
+                                 zip(morphemes_1, morphemes_2))
+
+        words_total = len(words_1)
+        morphemes_total = len(morphemes_1)
+
+        words_correct = words_total - len(word_errors)
+        morphemes_correct = morphemes_total - len(morpheme_errors)
+
+        return TestResult(
+            text_1.title,
+            words_total,
+            morphemes_total,
+            words_correct,
+            morphemes_correct,
+            word_errors,
+            morpheme_errors
+        )
+
+    @staticmethod
+    def merge(this, other):
+        if this is None:
+            return other
+
+        if other is None:
+            return this
+
+        return TestResult(this.title + " | " + other.title,
+                          this.words_total + other.words_total,
+                          this.morphemes_total + other.morphemes_total,
+                          this.words_correct + other.words_correct,
+                          this.morphemes_correct + other.morphemes_correct,
+                          this.wrong_words.extend(other.wrong_words),
+                          this.wrong_morphemes.extend(other.wrong_morphemes))
+
+
+def is_empty_ignore(content):
+    return content is None or (config.IGNORE_EMPTY_FROM_CASES and content == "")
