@@ -1,6 +1,7 @@
 import math
 
 import casetagger.config as config
+import itertools
 from casetagger import logger
 from casetagger.util import get_glosses_concatenated, get_text_words, get_text_morphemes
 from tc_xml_python.models import Phrase
@@ -58,6 +59,19 @@ class Cases:
     def from_array(self, array):
         for case in array:
             self.add_case(case.type, case.case_from, case.case_to, case.occurrences)
+
+    def create_tuple_cases(self):
+        # TODO: Filter and remove morpheme cases?
+        case_combinations = itertools.combinations(self.cases, 2)
+
+        for case_tuple in case_combinations:
+            case_1 = case_tuple[0]
+            case_2 = case_tuple[1]
+
+            # Note that case_to will be the same for all tuples
+            self.add_case(case_1.type | case_2.type,
+                          case_1.case_from + case_2.case_from,
+                          case_1.case_to)
 
     def __iter__(self):
         return self.cases.__iter__()
@@ -219,6 +233,8 @@ class WordCases(Cases):
                 if not is_empty_ignore(morpheme):
                     self.add_case(config.CASE_TYPE_POS_MORPHEME, morpheme.lower(), pos)
 
+        self.create_tuple_cases()
+
 
 class MorphemeCases(Cases):
     def __init__(self, morpheme, word, phrase):
@@ -378,5 +394,6 @@ class TestResult:
                           this.wrong_words.extend(other.wrong_words),
                           this.wrong_morphemes.extend(other.wrong_morphemes))
 
+
 def is_empty_ignore(content):
-    return config.IGNORE_EMPTY_FROM_CASES and content == ""
+    return content is None or (config.IGNORE_EMPTY_FROM_CASES and content == "")

@@ -55,6 +55,10 @@ class CaseTagger:
             cursor = db.conn.cursor()
 
             i += 1
+
+            if i % 100:
+                db.conn.commit()
+
             logger.debug("Training with phrase " + str(i) + "/" + str(phrase_len) + "\r")
             for word in phrase.words:
 
