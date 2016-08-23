@@ -1,3 +1,4 @@
+from casetagger import config
 from casetagger.models import Cases, Case
 
 
@@ -27,4 +28,29 @@ class TestModels(object):
         assert Case(5, "ac", "b") in case_instances
         assert Case(17, "ac", "b") in case_instances
         assert Case(20, "cc", "b") in case_instances
+
+    def test_get_case_types(self):
+        case_1 = Case(1 | 4 | 32 | 128, "a", "b")
+
+        types = case_1.get_case_types()
+
+        assert 1 in types
+        assert 4 in types
+        assert 32 in types
+        assert 128 in types
+        assert not 2 in types
+        assert not 16 in types
+
+    def test_cases_adjust_importance(self):
+        config.CASE_IMPORTANCE = {
+            1: 25,
+            4: 35,
+            16: 15
+        }
+
+        case_1 = Case(1 | 4, "a", "b")
+        prob_1 = 1.0
+
+        assert Cases.adjust_importance(prob_1, case_1) == 60
+
 

@@ -18,6 +18,14 @@ class Case:
         self.occurrences = occurrences
         self.prob = prob
 
+    def get_case_types(self):
+        types = []
+        for i in range(0, 32):
+            if (self.type & (1 << i)) > 0:
+                types.append(1 << i)
+
+        return types
+
     def __eq__(self, other):
         return self.type == other.type and self.case_from == other.case_from and self.case_to == other.case_to
 
@@ -128,17 +136,16 @@ class Cases:
         prob_2 = case_2.prob
 
         if config.ADJUST_FOR_IMPORTANCE:
-            prob_1 = Cases.adjust_importance(prob_1, case_1.type)
-            prob_2 = Cases.adjust_importance(prob_2, case_2.type)
+            prob_1 = Cases.adjust_importance(prob_1, case_1)
+            prob_2 = Cases.adjust_importance(prob_2, case_2)
 
         return case_1 if prob_1 > prob_2 else case_2
 
     @staticmethod
-    def adjust_importance(probability, case_type):
-        if case_type not in config.CASE_IMPORTANCE:
-            return probability
+    def adjust_importance(probability, case):
+        case_types = case.get_case_types()
 
-        importance = config.CASE_IMPORTANCE[case_type]
+        importance = sum(map(lambda _case_type: config.CASE_IMPORTANCE[_case_type], case_types))
 
         return importance * probability
 
