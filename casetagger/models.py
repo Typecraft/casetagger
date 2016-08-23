@@ -95,10 +95,11 @@ class Cases:
 
         The algorithm works in the following manner:
 
-            1. We have n cases we want to merge.
-            2. We take n/2 tuples
-            3. For each tuple, we eliminate the least likely one
-            4. If n initially was 2, and we have one case remaining, we are done.
+            1. Merge cases with similar to-endpoints, and combine their probability
+            2. We have n cases we want to merge.
+            3. We take n/2 tuples
+            4. For each tuple, we eliminate the least likely one
+            5. If n initially was 2, and we have one case remaining, we are done.
                Else we go back to step 1 and reiterate.
 
         :return:
@@ -108,22 +109,46 @@ class Cases:
         if len(self.cases) == 0:
             return ""
 
-        self.max_occurrence_count = max(map(lambda case: case.occurrences, self.cases))
+        self.adjust_probabilities(merged_cases)
+        merged_cases = self.combine_similar_cases(merged_cases)
 
-        while len(merged_cases) > 1:
-            next_merged_cases = []
-            for i in range(0, len(merged_cases), 2):
-                to_be_merged = merged_cases[i:i+2]
+        best_case = max(merged_cases, key=lambda case: case.prob)
 
-                if len(to_be_merged) == 1:
-                    next_merged_cases.append(to_be_merged[0])
-                else:
-                    next_merged_cases.append(self.merge_cases(to_be_merged[0], to_be_merged[1]))
+        logger.debug("Found dominating case: " + str(best_case))
+        return best_case.case_to
 
-            merged_cases = next_merged_cases
+    def combine_similar_cases(self, cases):
+        """
+        Takes a set of cases and combines the ones with equal to-probability
+        :param cases:
+        :return:
+        """
+        combined_cases = []
 
-        logger.debug("Found dominating case: " + str(merged_cases[0]))
-        return merged_cases[0].case_to
+        combined_case_dict = {}
+
+        for case in cases:
+            combined_case_dict.setdefault(case.case_to, []).append(case)
+
+        for _, cases in combined_case_dict.iteritems():
+            prob = 1
+            for case in cases:
+                prob *= (1-case.prob)
+
+            cases[0].prob = 1 - prob
+            combined_cases.append(cases[0])
+
+        return combined_cases
+
+    def adjust_probabilities(self, cases):
+        for case in cases:
+            case.prob = Cases.adjust_importance(case.prob, case)
+
+        # Normalize
+        best_case = max(cases, key=lambda x: x.prob).prob
+
+        for case in cases:
+            case.prob = case.prob / best_case
 
     def merge_cases(self, case_1, case_2):
         """
@@ -132,14 +157,7 @@ class Cases:
         :param case_2:
         :return:
         """
-        prob_1 = case_1.prob
-        prob_2 = case_2.prob
-
-        if config.ADJUST_FOR_IMPORTANCE:
-            prob_1 = Cases.adjust_importance(prob_1, case_1)
-            prob_2 = Cases.adjust_importance(prob_2, case_2)
-
-        return case_1 if prob_1 > prob_2 else case_2
+        return case_1 if case_1.prob > case_2.prob else case_2
 
     @staticmethod
     def adjust_importance(probability, case):
