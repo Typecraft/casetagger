@@ -122,7 +122,7 @@ class Cases:
 
             merged_cases = next_merged_cases
 
-        logger.debug("Found dominating case: " + unicode(merged_cases[0]))
+        logger.debug("Found dominating case: " + str(merged_cases[0]))
         return merged_cases[0].case_to
 
     def merge_cases(self, case_1, case_2):

@@ -42,15 +42,10 @@ class TestModels(object):
         assert 16 not in types
 
     def test_cases_adjust_importance(self):
-        config.CASE_IMPORTANCE = {
-            1: 25,
-            4: 35,
-            16: 15
-        }
 
         case_1 = Case(1 | 4, "a", "b")
         prob_1 = 1.0
 
-        assert Cases.adjust_importance(prob_1, case_1) == 60
+        assert Cases.adjust_importance(prob_1, case_1) == 13
 
 
