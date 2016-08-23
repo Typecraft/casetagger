@@ -4,6 +4,7 @@ import click
 import copy
 
 from casetagger.db import DbHandler
+from casetagger.models import TestResult
 from casetagger.tagger import CaseTagger
 
 import casetagger.config as config
@@ -15,7 +16,40 @@ from tc_xml_python.parsing.parser import Parser, TypecraftParseException
 
 
 # Some utility methods
+def input_to_texts(files, input_is_rawtext):
+    """
+    Converts given input to a list of files.
+
+    :param files:
+    :param input_is_rawtext:
+    :return:
+    """
+    parsed_texts = []
+    for file in files:
+        file_contents = read_file(file)
+
+        if input_is_rawtext:
+            parsed_texts.append(file_contents)
+        else:  # We interpret as typecraft-texts
+            try:
+                parsed_texts.extend(Parser.parse(file_contents))
+            except TypecraftParseException, e:
+                logger.critical("Invalid format in input-file: " + str(e))
+                exit(1)
+
+    if input_is_rawtext:
+        parsed_texts.extend(list(map(lambda text_content: convert_raw_text_to_texts(text_content), parsed_texts)))
+
+    return parsed_texts
+
+
 def read_file(file):
+    """
+    Reads a file.
+
+    :param file:
+    :return:
+    """
     file_contents = ""
     while True:
         chunk = file.read(1024)
@@ -29,6 +63,12 @@ def read_file(file):
 
 
 def convert_raw_text_to_texts(text_content):
+    """
+    Converts a raw-text input to a set of Text objects.
+
+    :param text_content:
+    :return:
+    """
     text = Text()
 
     for line in text_content:
@@ -45,81 +85,58 @@ def convert_raw_text_to_texts(text_content):
     return text
 
 
-def get_text_words(text):
-    return [word for phrase in text for word in phrase]
 
 
 @click.group()
 @click.option('--debug', is_flag=True, default=False)
 @click.option('-v', '--verbose', is_flag=True, default=False)
+@click.option('--memory', is_flag=True, default=False)
 @click.version_option(version=config.VERSION)
-def main(debug, verbose):
+def main(debug, verbose, memory):
     config.VERBOSITY_LEVEL = 2 if debug else 1 if verbose else 0
+    config.USE_MEMORY_DB = memory
 
 
 @main.command()
 @click.option('--language', default=None)
 @click.option('--raw-text', is_flag=True, default=False)
 @click.option('--output-raw-text', is_flag=True, default=False)
+@click.option('--print-test-details', is_flag=True, default=False)
 @click.argument('files', nargs=-1, type=click.File('rb'))
-@click.argument('output', type=click.File('w'))
-def test(language, raw_text, output_raw_text, files, output):
-    parsed_texts = []
+def test(language, raw_text, output_raw_text, print_test_details, files):
+    if len(files) == 0:
+        logger.critical("No input files")
+        exit(1)
+
+    if print_test_details:
+        config.PRINT_TEST_ERROR_DETAIL = True
 
     logger.debug("Parsing files")
-    for file in files:
-        file_contents = read_file(file)
-
-        if raw_text:
-            parsed_texts.append(file_contents)
-        else:  # We interpret as typecraft-texts
-            try:
-                parsed_texts.extend(Parser.parse(file_contents))
-            except TypecraftParseException, e:
-                logger.critical("Invalid format in input-file: " + str(e))
-
-    if raw_text:
-        parsed_texts.extend(list(map(lambda text_content: convert_raw_text_to_texts(text_content), parsed_texts)))
-
-    copied_texts = list(map(lambda text: copy.deepcopy(text), parsed_texts))
+    parsed_texts = input_to_texts(files, raw_text)
     logger.debug("Tagging files")
+
+    test_results = []
 
     if language is not None:
         CaseTagger.instantiate_db(language)
 
-        for text in copied_texts:
-            CaseTagger.tag_text(text)
+        for text in parsed_texts:
+            test_results.append(CaseTagger.test_text(text))
     else:
-        separated = separate_texts_by_languages(copied_texts)
+        separated = separate_texts_by_languages(parsed_texts)
 
         for language, texts in separated.iteritems():
             CaseTagger.instantiate_db(language)
 
             for text in texts:
-                CaseTagger.tag_text(text)
+                test_results.append(CaseTagger.test_text(text))
 
-    total_words = 0
-    total_errors = 0
-    for i in range(0, len(copied_texts)):
-        copied_text = copied_texts[i]
-        tagged_text = parsed_texts[i]
+    for result in test_results:
+        click.echo("\n\n" + unicode(result))
 
-        copied_words = get_text_words(copied_text)
-        tagged_words = get_text_words(tagged_text)
+    total_result = reduce(lambda x, y: TestResult.merge(x, y), test_results)
 
-        total_words += len(copied_words)
-
-        for j in range(0, len(copied_words)):
-            word_1 = copied_words[j]
-            word_2 = tagged_words[j]
-
-            if word_1.pos != word_2.pos:
-                total_errors += 1
-
-    total_correct = total_words - total_errors
-    percent_correct = 100 * float(total_correct) / float(total_words)
-    output.write("Test finished tagging %s words. Succesfully tagged %d words (%.2f %%)" % (
-            total_words, total_correct, percent_correct))
+    click.echo("\n\n" + unicode(total_result))
 
 
 @main.command()
@@ -127,24 +144,15 @@ def test(language, raw_text, output_raw_text, files, output):
 @click.option('--raw-text', is_flag=True, default=False)
 @click.option('--output-raw-text', is_flag=True, default=False)
 @click.argument('files', nargs=-1, type=click.File('rb'))
-@click.argument('output', type=click.File('w'))
-def tag(language, raw_text, output_raw_text, files, output):
+def tag(language, raw_text, output_raw_text, files):
     parsed_texts = []
 
+    if len(files) == 0:
+        logger.critical("No input files")
+        exit(1)
+
     logger.debug("Parsing files")
-    for file in files:
-        file_contents = read_file(file)
-
-        if raw_text:
-            parsed_texts.append(file_contents)
-        else:  # We interpret as typecraft-texts
-            try:
-                parsed_texts.extend(Parser.parse(file_contents))
-            except TypecraftParseException, e:
-                logger.critical("Invalid format in input-file: " + str(e))
-
-    if raw_text:
-        parsed_texts.extend(list(map(lambda text_content: convert_raw_text_to_texts(text_content), parsed_texts)))
+    parsed_texts = input_to_texts(files, raw_text)
 
     if language is not None:
         CaseTagger.instantiate_db(language)
@@ -153,7 +161,6 @@ def tag(language, raw_text, output_raw_text, files, output):
             logger.debug("Tagging text " + text.title)
             CaseTagger.tag_text(text)
     else:
-        print(parsed_texts)
         separated = separate_texts_by_languages(parsed_texts)
 
         for language, texts in separated.iteritems():
@@ -162,32 +169,19 @@ def tag(language, raw_text, output_raw_text, files, output):
             for text in texts:
                 CaseTagger.tag_text(text)
 
-    for text in parsed_texts:
-        output.write(str(text))
+    click.echo(Parser.write((parsed_texts)))
 
 
 @main.command()
 @click.argument('files', nargs=-1, type=click.File('rb'))
 @click.option('--language', default=None)
 def train(files, language):
-    parsed_texts = []
 
-    logger.debug("Parsing files")
-    for fn in files:
-        file_contents = ""
-        while True:
-            chunk = fn.read(1024)
+    if len(files) == 0:
+        logger.critical("No input files")
+        exit(1)
 
-            if not chunk:
-                break
-
-            file_contents += chunk
-
-        # Our file is read, we can now parse it
-        try:
-            parsed_texts.extend(Parser.parse(file_contents))
-        except TypecraftParseException, e:
-            logger.critical("Invalid format in input-file: " + str(e))
+    parsed_texts = input_to_texts(files, False)
 
     if language is not None:
         CaseTagger.instantiate_db(language)

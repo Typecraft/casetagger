@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+import copy
 
 import casetagger.config as config
 from casetagger import logger
 from casetagger.db import DbHandler
-from casetagger.models import WordCases, MorphemeCases
+from casetagger.models import WordCases, MorphemeCases, TestResult
 from tc_xml_python.models import Text
 
 
@@ -109,4 +110,19 @@ class CaseTagger:
 
                         most_likely_gloss = morpheme_cases.merge()
                         morpheme.glosses = most_likely_gloss.split(".")
+
+    @classmethod
+    def test_text(cls, text):
+        if not isinstance(text, Text):
+            raise Exception
+
+        language = text.language
+        copied_text = copy.deepcopy(text)
+
+        CaseTagger.tag_text(text)
+
+        return TestResult.from_data(copied_text, text)
+
+
+
 

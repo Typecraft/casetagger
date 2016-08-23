@@ -15,6 +15,11 @@ Verbosity level.
 VERBOSITY_LEVEL = 0
 
 """
+Error printing
+"""
+PRINT_TEST_ERROR_DETAIL = False
+
+"""
 Base directory of config.
 """
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -76,6 +81,10 @@ TODO
 SPLIT_GLOSSES = False
 
 """
+"""
+IGNORE_EMPTY_FROM_CASES = True
+
+"""
 Cases
 """
 CASE_TYPE_POS_WORD = 1
@@ -105,7 +114,7 @@ CASE_TYPE_GLOSS_WORD_CONTAINS_CASE = 20
 CASE IMPORTANCE
 """
 CASE_IMPORTANCE = {
-    CASE_TYPE_POS_WORD: 10,
+    CASE_TYPE_POS_WORD: 60,
     CASE_TYPE_POS_WORD_CASE: 2,
     CASE_TYPE_POS_PREFIX_WORD: 3,
     CASE_TYPE_POS_SUFFIX_WORD: 3,

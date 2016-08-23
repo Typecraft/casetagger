@@ -26,3 +26,22 @@ def separate_texts_by_languages(texts):
         dict[lan].append(text)
 
     return dict
+
+
+def get_text_words(text):
+    """
+    Returns all words of a text.
+    :param text:
+    :return:
+    """
+    return [word for phrase in text for word in phrase]
+
+
+def get_text_morphemes(text):
+    """
+    Returns all morphemes of a text.
+
+    :param text:
+    :return:
+    """
+    return [morpheme for word in get_text_words(text) for morpheme in word]
