@@ -61,4 +61,4 @@ class TestModels(object):
         combined = cases.combine_similar_cases(cases.cases)
 
         for case in combined:
-            print case
+            print(case)

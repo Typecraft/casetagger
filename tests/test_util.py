@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from casetagger.util import get_glosses_concatenated, separate_texts_by_languages, get_text_words, get_text_morphemes
-from tc_xml_python.models import Text, Morpheme, Phrase, Word
+from typecraft_python.models import Text, Morpheme, Phrase, Word
 
 
 class TestUtil(object):

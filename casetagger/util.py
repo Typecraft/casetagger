@@ -1,4 +1,4 @@
-from tc_xml_python.models import Morpheme
+from typecraft_python.models import Morpheme
 
 
 def get_glosses_concatenated(morpheme):

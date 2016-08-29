@@ -10,9 +10,9 @@ from casetagger.tagger import CaseTagger
 import casetagger.config as config
 import casetagger.logger as logger
 from casetagger.util import separate_texts_by_languages
-from tc_xml_python.models import Text, Phrase, Word
+from typecraft_python.models import Text, Phrase, Word
 
-from tc_xml_python.parsing.parser import Parser, TypecraftParseException
+from typecraft_python.parsing.parser import Parser, TypecraftParseException
 
 
 # Some utility methods

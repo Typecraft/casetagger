@@ -2,9 +2,8 @@ import math
 
 import casetagger.config as config
 import itertools
-from casetagger import logger
 from casetagger.util import get_glosses_concatenated, get_text_words, get_text_morphemes
-from tc_xml_python.models import Phrase
+from typecraft_python.models import Phrase
 
 
 class Case:
@@ -114,7 +113,6 @@ class Cases:
 
         best_case = max(merged_cases, key=lambda case: case.prob)
 
-        logger.debug("Found dominating case: " + str(best_case))
         return best_case.case_to
 
     def combine_similar_cases(self, cases):
@@ -130,7 +128,7 @@ class Cases:
         for case in cases:
             combined_case_dict.setdefault(case.case_to, []).append(case)
 
-        for _, cases in combined_case_dict.iteritems():
+        for _, cases in combined_case_dict.items():
             prob = 1
             for case in cases:
                 prob *= (1-case.prob)

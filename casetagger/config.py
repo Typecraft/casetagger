@@ -43,7 +43,7 @@ TAG_LEVEL = 'all'
 Possible values:
     1-n
 """
-NUMBER_OF_PASSES = 1
+NUMBER_OF_PASSES = 2
 
 """
 Possible values:

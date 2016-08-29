@@ -5,7 +5,7 @@ import casetagger.config as config
 from casetagger import logger
 from casetagger.db import DbHandler
 from casetagger.models import WordCases, MorphemeCases, TestResult
-from tc_xml_python.models import Text
+from typecraft_python.models import Text
 
 
 class CaseTagger:
@@ -37,7 +37,7 @@ class CaseTagger:
         :return:
         """
         if not isinstance(text, Text):
-            raise Exception("Invalid argument to tag_text, expected tc_xml_python.models.text.Text object")
+            raise Exception("Invalid argument to tag_text, expected typecraft_python.models.text.Text object")
 
         language = text.language
 
@@ -85,7 +85,7 @@ class CaseTagger:
         :return:
         """
         if not isinstance(text, Text):
-            raise Exception("Invalid argument to tag_text, expected tc_xml_python.models.text.Text object")
+            raise Exception("Invalid argument to tag_text, expected typecraft_python.models.text.Text object")
 
         language = text.language
 
