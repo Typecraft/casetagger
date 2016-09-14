@@ -1,6 +1,6 @@
 import math
 
-import casetagger.config as config
+from casetagger.config import config
 import itertools
 
 from casetagger.util import *
@@ -80,7 +80,7 @@ class Cases:
             # We don't both creating tuple cases of the same type.
             # This is primarily to avoid creating a lot of ngram-tuples
             # which yield no additional information when combined.
-            if config.IGNORE_TUPLES_OF_SAME_TYPE and case_1.type == case_2.type:
+            if config['ignore_tuples_of_same_type'] and case_1.type == case_2.type:
                 continue
 
             # Note that case_to will be the same for all tuples
@@ -185,7 +185,7 @@ class Cases:
     def adjust_importance(probability, case):
         case_types = case.get_case_types()
 
-        importance = sum(map(lambda _case_type: config.CASE_IMPORTANCE[_case_type], case_types))
+        importance = sum(map(lambda _case_type: config['case_importance'][str(_case_type)], case_types))
 
         return importance * probability
 
@@ -216,7 +216,7 @@ class Cases:
         :return:
         """
 
-        return probability * math.log(occurrences+1, config.OCCURRENCE_ORDER_OF_MAGNITUDE) / math.log(max_occurrences+1, config.OCCURRENCE_ORDER_OF_MAGNITUDE)
+        return probability * math.log(occurrences+1, config['occurrence_order_of_magnitude']) / math.log(max_occurrences+1, config['occurrence_order_of_magnitude'])
 
 
 class WordCases(Cases):
@@ -242,19 +242,19 @@ class WordCases(Cases):
         if len(word.morphemes) > 0:
             morphemes = list(map(lambda x: x.morpheme, word.morphemes))
 
-        self.add_case(config.CASE_TYPE_POS_WORD, word.word.lower(), pos)
+        self.add_case(config['case_type_pos_word'], word.word.lower(), pos)
 
         if len(word.word) > 0:
             if word.word[0].isupper():
-                self.add_case(config.CASE_TYPE_POS_WORD_CASE, "True", pos)
+                self.add_case(config['case_type_pos_word_case'], "True", pos)
 
         if word.word.lower() != word.word:
-            self.add_case(config.CASE_TYPE_POS_WORD_CONTAINS_CASE, "True", pos)
+            self.add_case(config['case_type_pos_word_contains_case'], "True", pos)
 
         if len(morphemes) > 0:
             for morpheme in morphemes:
                 if not is_empty_ignore(morpheme):
-                    self.add_case(config.CASE_TYPE_POS_MORPHEME, morpheme.lower(), pos)
+                    self.add_case(config['case_type_pos_morpheme'], morpheme.lower(), pos)
 
         self.add_word_surrounding_ngram_cases(word_index, phrase, pos)
         self.create_tuple_cases()
@@ -268,13 +268,13 @@ class WordCases(Cases):
         :param pos_to:
         :return:
         """
-        for i in range(2, config.SURROUNDING_NGRAM_LENGTH_MAX+1):
+        for i in range(2, config['surrounding_ngram_max_length']+1):
             ngrams_of_length_i = get_consecutive_sublists_of_length_around_index(phrase.words, word_index, i)
             for ngram in ngrams_of_length_i:
-                self.add_case(config.CASE_TYPE_POS_SURROUNDING_NGRAM,
+                self.add_case(config['case_type_pos_surrounding_ngram'],
                               "".join(map(lambda word: word.word if word.word is not None else "", ngram)),
                               pos_to)
-                self.add_case(config.CASE_TYPE_POS_SURROUNDING_NGRAM,
+                self.add_case(config['case_type_pos_surrounding_ngram'],
                               "".join(map(lambda word: word.pos if word.pos is not None else "", ngram)),
                               pos_to)
 
@@ -295,15 +295,15 @@ class MorphemeCases(Cases):
         gloss = get_glosses_concatenated(morpheme)
         word_index = phrase.words.index(word)
 
-        self.add_case(config.CASE_TYPE_GLOSS_MORPH, morpheme.morpheme.lower(), gloss)
-        self.add_case(config.CASE_TYPE_GLOSS_WORD, morpheme.morpheme.lower(), gloss)
+        self.add_case(config['case_type_gloss_morph'], morpheme.morpheme.lower(), gloss)
+        self.add_case(config['case_type_gloss_word'], morpheme.morpheme.lower(), gloss)
 
         if len(word.word) > 0:
             if word.word[0].isupper():
-                self.add_case(config.CASE_TYPE_GLOSS_WORD_CASE, "True", gloss)
+                self.add_case(config['case_type_gloss_word_case'], "True", gloss)
 
         if word.word.lower() != word.word:
-            self.add_case(config.CASE_TYPE_GLOSS_WORD_CONTAINS_CASE, "True", gloss)
+            self.add_case(config['case_type_gloss_word_contains_case'], "True", gloss)
 
         self.add_surrounding_morpheme_ngram_cases(morpheme_index, word.morphemes, gloss)
         self.add_surrounding_word_ngram_cases(word_index, phrase.words, gloss)
@@ -317,13 +317,13 @@ class MorphemeCases(Cases):
         :param gloss_to:
         :return:
         """
-        for i in range(2, config.SURROUNDING_NGRAM_LENGTH_MAX+1):
+        for i in range(2, config['surrounding_ngram_max_length']+1):
             ngrams_of_length_i = get_consecutive_sublists_of_length_around_index(morphemes, morpheme_index, i)
             for ngram in ngrams_of_length_i:
-                self.add_case(config.CASE_TYPE_GLOSS_SURROUNDING_NGRAM,
+                self.add_case(config['case_type_gloss_surrounding_ngram'],
                               "".join(map(lambda morpheme: morpheme.morpheme if morpheme.morpheme is not None else "", ngram)),
                               gloss_to)
-                self.add_case(config.CASE_TYPE_GLOSS_SURROUNDING_NGRAM,
+                self.add_case(config['case_type_gloss_surrounding_ngram'],
                               "".join(map(lambda morpheme: get_glosses_concatenated(morpheme), ngram)),
                               gloss_to)
 
@@ -336,13 +336,13 @@ class MorphemeCases(Cases):
         :param gloss_to:
         :return:
         """
-        for i in range(2, config.SURROUNDING_NGRAM_LENGTH_MAX+1):
+        for i in range(2, config['surrounding_ngram_max_length']+1):
             ngrams_of_length_i = get_consecutive_sublists_of_length_around_index(words, word_index, i)
             for ngram in ngrams_of_length_i:
-                self.add_case(config.CASE_TYPE_GLOSS_SURROUNDING_NGRAM,
+                self.add_case(config['case_type_gloss_surrounding_ngram'],
                               "".join(map(lambda word: word.word if word.word is not None else "", ngram)),
                               gloss_to)
-                self.add_case(config.CASE_TYPE_GLOSS_SURROUNDING_NGRAM,
+                self.add_case(config['case_type_gloss_surrounding_ngram'],
                               "".join(map(lambda word: word.pos if word.pos is not None else "", ngram)),
                               gloss_to)
 
@@ -375,7 +375,7 @@ class TestResult:
                    self.words_correct, self.word_accuracy(),
                    self.morphemes_correct, self.morpheme_accuracy())
 
-        if config.PRINT_TEST_ERROR_DETAIL:
+        if config['print_test_error_detail']:
             res += "Word errors:\n"
             for word_tuple in self.wrong_words:
                 res += "For word %s:\n\tCorrect: %s\n\tWrong: %s\n\n" % (word_tuple[0].word, word_tuple[0].pos, word_tuple[1].pos)
@@ -434,4 +434,4 @@ class TestResult:
 
 
 def is_empty_ignore(content):
-    return content is None or (config.IGNORE_EMPTY_FROM_CASES and content == "")
+    return content is None or (config['ignore_empty_from_cases'] and content == "")
