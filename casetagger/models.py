@@ -18,6 +18,11 @@ class Case:
         self.prob = prob
 
     def get_case_types(self):
+        """
+        Returns all case types of the Case.
+
+        :return:
+        """
         types = []
         for i in range(0, 32):
             if (self.type & (1 << i)) > 0:
@@ -29,7 +34,7 @@ class Case:
         return self.type == other.type and self.case_from == other.case_from and self.case_to == other.case_to
 
     def __str__(self):
-        return "%d %s => %s [occurences=%s, prob=%s]" % (self.type, self.case_from, self.case_to, self.occurrences, self.prob)
+        return "%d %s => %s [occurrences=%s, prob=%s]" % (self.type, self.case_from, self.case_to, self.occurrences, self.prob)
 
 
 class CaseFromCounter:
@@ -61,10 +66,6 @@ class Cases:
 
     def add_all_cases(self, cases):
         for case in cases:
-            self.add_case(case.type, case.case_from, case.case_to, case.occurrences)
-
-    def from_array(self, array):
-        for case in array:
             self.add_case(case.type, case.case_from, case.case_to, case.occurrences)
 
     def create_tuple_cases(self):
@@ -108,17 +109,23 @@ class Cases:
         if len(self.cases) == 0:
             return ""
 
-        self.adjust_probabilities(merged_cases)
-        merged_cases = self.combine_similar_cases(merged_cases)
+        Cases.adjust_probabilities(merged_cases)
+        merged_cases = Cases.combine_similar_cases(merged_cases)
 
         best_case = max(merged_cases, key=lambda case: case.prob)
 
         return best_case.case_to
 
-    def combine_similar_cases(self, cases):
+    @staticmethod
+    def combine_similar_cases(cases):
         """
-        Takes a set of cases and combines the ones with equal to-probability
-        :param cases:
+        Takes a set of cases and combines the ones which are predicting the same
+        outcome. Their probability is merged simply by calculating 1 minus the probability
+        that they are all wrong:
+
+        1 - (sum_{case in cases}(1 - case.prob))
+
+        :param cases: A set of unique to_cases with their calculated probabilities.
         :return:
         """
         combined_cases = []
@@ -138,7 +145,16 @@ class Cases:
 
         return combined_cases
 
-    def adjust_probabilities(self, cases):
+    @staticmethod
+    def adjust_probabilities(cases):
+        """
+        This method adjusts the probabilities of cases. The adjustment is
+        done in accordance with the importance of each case, as defined in
+        the config.
+
+        :param cases:
+        :return:
+        """
         for case in cases:
             case.prob = Cases.adjust_importance(case.prob, case)
 
@@ -148,7 +164,8 @@ class Cases:
         for case in cases:
             case.prob = case.prob / best_case
 
-    def merge_cases(self, case_1, case_2):
+    @staticmethod
+    def merge_cases(case_1, case_2):
         """
         Merges two cases, returning the most likely case
         :param case_1:
@@ -198,7 +215,10 @@ class Cases:
 class WordCases(Cases):
     def __init__(self, word, phrase):
         """
-        Creates the word-cases object
+        Creates the word-cases object.
+
+        This constructor initialises all relevant cases for the WordCases object.
+
         :param word:
         :param phrase:
         """
