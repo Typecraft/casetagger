@@ -46,8 +46,7 @@ class TestModels(object):
         case_1 = Case(1 | 4, "a", "b")
         prob_1 = 1.0
 
-        assert Cases.adjust_importance(prob_1, case_1) == 13
-
+        assert Cases.adjust_importance(prob_1, case_1) == 1.8
 
     def test_cases_combine_similar(self):
         cases = Cases()
