@@ -114,7 +114,7 @@ config = {
     (TYPE_1 | TYPE_3, FROM_1 + FROM_1 => TO_1)
     (TYPE_1 | TYPE_3, FROM_2 + FROM_1 => TO_1)
     """
-    "tuple_max_length": 3,
+    "tuple_max_length": 2,
 
     """
     Whether or not we should ignore creating tuples which

@@ -68,30 +68,39 @@ class Cases:
 
     def add_all_cases(self, cases):
         for case in cases:
-            self.add_case(case.type, case.case_from, case.case_to, case.occurrences)
+            self.add_case_from_obj(case)
+
+    def add_case_from_obj(self, case):
+        assert isinstance(case, Case)
+
+        self.cases.append(case)
 
     def create_tuple_cases(self):
         # TODO: Filter and remove morpheme cases?
-        case_combinations = itertools.combinations(self.cases, 2)
 
-        for case_tuple in case_combinations:
-            case_1 = case_tuple[0]
-            case_2 = case_tuple[1]
+        cases_to_be_added = []
+        for i in range(2, config['tuple_max_length']+1):
+            case_combinations = itertools.combinations(self.cases, i)
 
-            # We don't create tuple-cases if the cases are in the same case-group.
-            # This is primarily to avoid creating a lot of ngram-tuples
-            # which yield no additional information when combined.
-            if config['ignore_tuples_of_same_type'] and config['case_groups'][str(case_1.type)] == config['case_groups'][str(case_2.type)]:
-                continue
+            for case_tuple in case_combinations:
+                # We don't create tuple-cases if the cases are in the same case-group.
+                # This is primarily to avoid creating a lot of ngram-tuples
+                # which yield no additional information when combined.
+                if config['ignore_tuples_of_same_type']:
+                    # This somewhat ugly if simply says that if either of the cases share case_group...
+                    if len(set(map(lambda x: config['case_groups'][str(x.type)], case_tuple))) < len(case_tuple):
+                        continue
 
-            cases = sorted([case_1, case_2], key=lambda x: x.type)
+                cases = sorted(case_tuple, key=lambda x: x.type)
 
-            cases_type = reduce(lambda x, y: x.type | y.type, cases)
-            cases_from = "@".join(map(lambda x: x.case_from, cases))
-            cases_to = case_1.case_to
+                cases_type = reduce(lambda x, y: x | y.type, cases, 0)
+                cases_from = "@".join(map(lambda x: x.case_from, cases))
+                cases_to = case_tuple[0].case_to
 
-            # Note that case_to will be the same for all tuples
-            self.add_case(cases_type, cases_from, cases_to)
+                # Note that case_to will be the same for all tuples
+                cases_to_be_added.append(Case(cases_type, cases_from, cases_to))
+
+        self.add_all_cases(cases_to_be_added)
 
     def __iter__(self):
         return self.cases.__iter__()
@@ -118,14 +127,14 @@ class Cases:
         """
 
         merged_cases = self.cases
+        if config['print_test_error_detail']:
+            for case in merged_cases:
+                print("Case", unicode(case))
         if len(self.cases) == 0:
             return ""
 
         Cases.adjust_probabilities(merged_cases)
         merged_cases = Cases.combine_similar_cases(merged_cases)
-        if config['print_test_error_detail']:
-            for case in merged_cases:
-                print("Case", unicode(case))
 
         best_case = max(merged_cases, key=lambda case: case.prob)
         if config['print_test_error_detail']:
@@ -189,13 +198,14 @@ class Cases:
     @staticmethod
     def adjust_importance(probability, case):
         case_types = case.get_case_types()
-
         importance = sum(map(lambda _case_type: config['case_importance'][str(_case_type)], case_types))
 
         return importance * probability
 
     @staticmethod
     def adjust_occurrence(probability, occurrence):
+        if occurrence > 100:
+            return probability
         return probability * (1 - (1 / math.exp(float(occurrence + 5 * math.log(2)) / 5)))
 
 
@@ -229,7 +239,7 @@ class WordCases(Cases):
                 if not is_empty_ignore(morpheme):
                     self.add_case(config['case_type_pos_morpheme'], morpheme.lower(), pos)
 
-        self.add_word_surrounding_ngram_cases(word_index, phrase, pos)
+        #self.add_word_surrounding_ngram_cases(word_index, phrase, pos)
         self.create_tuple_cases()
 
     def add_word_surrounding_ngram_cases(self, word_index, phrase, pos_to):
