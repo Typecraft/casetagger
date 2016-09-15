@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import copy
 
-import casetagger.config as config
+from casetagger.config import config
 from casetagger import logger
 from casetagger.db import DbHandler
 from casetagger.models import WordCases, MorphemeCases, TestResult
-from tc_xml_python.models import Text
+from typecraft_python.models import Text
 
 
 class CaseTagger:
@@ -27,7 +27,7 @@ class CaseTagger:
         :param language:
         :return:
         """
-        cls.db = DbHandler(language, config.USE_MEMORY_DB)
+        cls.db = DbHandler(language, config['use_memory_db'])
 
     @classmethod
     def train(cls, text):
@@ -37,14 +37,14 @@ class CaseTagger:
         :return:
         """
         if not isinstance(text, Text):
-            raise Exception("Invalid argument to tag_text, expected tc_xml_python.models.text.Text object")
+            raise Exception("Invalid argument to tag_text, expected typecraft_python.models.text.Text object")
 
         language = text.language
 
         if cls.db is not None:
             db = cls.db
         else:
-            db = DbHandler(language, config.USE_MEMORY_DB)
+            db = DbHandler(language, config['use_memory_db'])
 
         # Used for debug only
         phrase_len = len(text.phrases)
@@ -63,13 +63,13 @@ class CaseTagger:
             for word in phrase.words:
 
                 # If we don't have an option to ignore words with empty poses
-                if not (word.pos is None and not config.REGISTER_EMPTY_POS):
+                if not (word.pos is None and word.pos is not "" and not config['register_empty_pos']):
                     word_cases = WordCases(word, phrase)
                     db.insert_cases(word_cases, cursor)
 
                 for morpheme in word.morphemes:
                     # If we don't want to ignore empty glosses
-                    if not (len(morpheme.glosses) == 0 and not config.REGISTER_EMPTY_GLOSS):
+                    if not (len(morpheme.glosses) == 0 and not config['register_empty_gloss']):
                         morpheme_cases = MorphemeCases(morpheme, word, phrase)
 
                         db.insert_cases(morpheme_cases, cursor)
@@ -85,7 +85,7 @@ class CaseTagger:
         :return:
         """
         if not isinstance(text, Text):
-            raise Exception("Invalid argument to tag_text, expected tc_xml_python.models.text.Text object")
+            raise Exception("Invalid argument to tag_text, expected typecraft_python.models.text.Text object")
 
         language = text.language
 
@@ -93,9 +93,9 @@ class CaseTagger:
         if cls.db is not None:
             db = cls.db
         else:
-            db = DbHandler(language, config.USE_MEMORY_DB)
+            db = DbHandler(language, config['use_memory_db'])
 
-        for i in range(config.NUMBER_OF_PASSES):
+        for i in range(config['number_of_passes']):
             for phrase in text.phrases:
                 for word in phrase.words:
                     word_cases = WordCases(word, phrase)
@@ -120,7 +120,6 @@ class CaseTagger:
         if not isinstance(text, Text):
             raise Exception
 
-        language = text.language
         copied_text = copy.deepcopy(text)
 
         CaseTagger.tag_text(text)

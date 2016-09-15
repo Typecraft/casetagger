@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from tc_xml_python.models import Text
-from tc_xml_python.models import Phrase
-from tc_xml_python.models import Word
-from tc_xml_python.models import Morpheme
+from typecraft_python.models import Text
+from typecraft_python.models import Phrase
+from typecraft_python.models import Word
+from typecraft_python.models import Morpheme
 
 from casetagger.tagger import CaseTagger
 from casetagger.models import Case, CaseFromCounter

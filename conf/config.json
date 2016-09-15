@@ -1,0 +1,31 @@
+{
+  "verbosity_level" : 0,
+  "print_test_error_detail": false,
+  "output_type": "tcxml",
+  "tag_level": "all",
+  "number_of_passes": 2,
+  "use_memory_db": false,
+  "register_empty_pos": true,
+  "register_empty_gloss": true,
+  "adjust_for_occurrence": false,
+  "adjust_for_importance": true,
+  "split_glosses": false,
+  "ignore_empty_from_cases": true,
+  "surrounding_ngram_max_length": 3,
+  "tuple_max_length": 3,
+  "ignore_tuples_of_same_type": true,
+  "case_type_pos_word": 1,
+  "case_type_pos_morpheme": 2,
+  "case_type_pos_surrounding_ngram": 4,
+  "case_type_gloss_morph": 65536,
+  "case_type_gloss_word": 131072,
+  "case_type_gloss_surrounding_ngram": 262144,
+  "case_importance": {
+    "1": 1.0,
+    "2": 0.2,
+    "4": 0.6,
+    "65536": 1.0,
+    "131072": 0.8,
+    "262144": 0.6
+  }
+}

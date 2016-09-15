@@ -11,7 +11,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.0',
-    'tc_xml_python>=0.3.1'
+    'typecraft_python>=0.3.1'
 ]
 
 test_requirements = [
@@ -19,7 +19,7 @@ test_requirements = [
 
 setup(
     name='casetagger',
-    version='0.3.1',
+    version='0.3.2',
     description="Part-of-speech and morphological tagger employing a simple cased-based algorithm.",
     long_description=readme + '\n\n' + history,
     author="Tormod Haugland",

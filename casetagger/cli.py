@@ -7,12 +7,12 @@ from casetagger.db import DbHandler
 from casetagger.models import TestResult
 from casetagger.tagger import CaseTagger
 
-import casetagger.config as config
+from casetagger.config import config, VERSION
 import casetagger.logger as logger
 from casetagger.util import separate_texts_by_languages
-from tc_xml_python.models import Text, Phrase, Word
+from typecraft_python.models import Text, Phrase, Word
 
-from tc_xml_python.parsing.parser import Parser, TypecraftParseException
+from typecraft_python.parsing.parser import Parser, TypecraftParseException
 
 
 # Some utility methods
@@ -91,10 +91,10 @@ def convert_raw_text_to_texts(text_content):
 @click.option('--debug', is_flag=True, default=False)
 @click.option('-v', '--verbose', is_flag=True, default=False)
 @click.option('--memory', is_flag=True, default=False)
-@click.version_option(version=config.VERSION)
+@click.version_option(version=VERSION)
 def main(debug, verbose, memory):
-    config.VERBOSITY_LEVEL = 2 if debug else 1 if verbose else 0
-    config.USE_MEMORY_DB = memory
+    config['verbosity_level'] = 2 if debug else 1 if verbose else 0
+    config['use_memory_db'] = memory
 
 
 @main.command()
@@ -109,7 +109,7 @@ def test(language, raw_text, output_raw_text, print_test_details, files):
         exit(1)
 
     if print_test_details:
-        config.PRINT_TEST_ERROR_DETAIL = True
+        config['print_test_error_detail'] = True
 
     logger.debug("Parsing files")
     parsed_texts = input_to_texts(files, raw_text)
