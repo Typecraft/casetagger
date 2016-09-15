@@ -128,17 +128,41 @@ config = {
     "case_type_pos_word": 1,
     "case_type_pos_morpheme": 2,
     "case_type_pos_surrounding_ngram": 4,
+    "case_type_pos_prefix_ngram": 8,
+    "case_type_pos_suffix_ngram": 16,
     "case_type_gloss_morph": 65536,
     "case_type_gloss_word": 131072,
     "case_type_gloss_surrounding_ngram": 262144,
+    "case_type_gloss_prefix_ngram": 524288,
+    "case_type_gloss_suffix_ngram": 1048576,
     "case_importance": {
         "1": 1.0,
         "2": 1.0,
         "4": 1.0,
         "8": 1.0,
+        "16": 1.0,
         "65536": 1.0,
         "131072": 1.0,
         "262144": 1.0,
+        "524288": 1.0,
+        "1048576": 1.0,
+    },
+
+    """
+    A case group is defined as a grouping of cases into types that are more or less the same.
+    The different types of ngrams for instance are in the same group
+    """
+    "case_groups": {
+        "1": 1,
+        "2": 2,
+        "4": 3,
+        "8": 3,
+        "16": 3,
+        "65536": 4,
+        "131702": 5,
+        "262144": 6,
+        "524288": 6,
+        "1048576": 6
     }
 }
 

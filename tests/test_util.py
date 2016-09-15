@@ -148,3 +148,64 @@ class TestUtil(object):
         sublists = get_consecutive_sublists_of_length_around_index(a_list, 3, 1)
 
         assert sublists == [[2], [4]]
+
+    def test_get_all_prefix_sublists_upto_length(self):
+        a_list = list(range(6))  # [0,1,2,3,4,5]
+
+        sublists = get_all_prefix_sublists_upto_length(a_list, 3, 2)
+
+        assert sublists == [[2], [1,2]]
+
+        sublists = get_all_prefix_sublists_upto_length(a_list, 0, 3)
+
+        assert sublists == []
+
+        sublists = get_all_prefix_sublists_upto_length(a_list, 5, 4)
+
+        assert sublists == [[4], [3, 4], [2, 3, 4], [1, 2, 3, 4]]
+
+    def test_get_all_suffix_sublists_upto_length(self):
+        a_list = list(range(6))  # [0,1,2,3,4,5]
+
+        sublists = get_all_suffix_sublists_upto_length(a_list, 3, 2)
+
+        assert sublists == [[4], [4, 5]]
+
+        sublists = get_all_suffix_sublists_upto_length(a_list, 5, 3)
+
+        assert sublists == []
+
+        sublists = get_all_suffix_sublists_upto_length(a_list, 0, 4)
+
+        assert sublists == [[1], [1, 2], [1, 2, 3], [1, 2, 3, 4]]
+
+    def test_get_surrounding_sublist_of_length(self):
+        a_list = list(range(6))  # [0,1,2,3,4,5]
+
+        sublists = get_surrounding_sublist_of_length(a_list, 3, 2)
+
+        assert sublists == []
+
+    def test_get_surrounding_sublists_upto_length(self):
+        a_list = list(range(6))  #[0, 1, 2, 3, 4, 5]
+
+        sublists = get_surrounding_sublists_upto_length(a_list, 3, 1)
+        assert sublists == [[2, 4]]
+
+        sublists = get_surrounding_sublists_upto_length(a_list, 3, 2)
+        assert sublists == [[2, 4], [1, 2, 4, 5]]
+
+        sublists = get_surrounding_sublists_upto_length(a_list, 1, 2)
+        assert sublists == [[0, 2], [0, 2, 3]]
+
+        sublists = get_surrounding_sublists_upto_length(a_list, 0, 3)
+        assert sublists == [[1], [1, 2], [1, 2, 3]]
+
+    def test_get_surrounding_sublists_upto_length_with_filler(self):
+        a_list = list(range(6))
+        sublists = get_surrounding_sublists_upto_length(a_list, 3, 1, filler=[13])
+
+        assert sublists == [[2, 13, 4]]
+
+        sublists = get_surrounding_sublists_upto_length(a_list, 1, 2, filler=[97])
+        assert sublists == [[0, 97, 2], [0, 97, 2, 3]]

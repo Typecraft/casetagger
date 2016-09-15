@@ -100,3 +100,71 @@ def get_consecutive_sublists_of_length_around_index(parent_list, index, length):
     list_with_index_removed = parent_list[lowest_relevant_index:index] + parent_list[index+1:highest_relevant_index]
 
     return get_consecutive_sublists_of_length(list_with_index_removed, length)
+
+
+def get_prefix_sublist_of_length(parent_list, index, length):
+    return parent_list[index-length:index]
+
+
+def get_suffix_sublist_of_length(parent_list, index, length):
+    return parent_list[index+1: index+length+1]
+
+
+def get_all_prefix_sublists_upto_length(parent_list, index, length):
+    result = []
+    for i in range(1, length+1):
+        if index - i < 0:
+            break
+        result.append(get_prefix_sublist_of_length(parent_list, index, i))
+
+    return result
+
+
+def get_all_suffix_sublists_upto_length(parent_list, index, length):
+    result = []
+    for i in range(1, length+1):
+        if index + i + 1 > len(parent_list):
+            break
+        result.append(get_suffix_sublist_of_length(parent_list, index, i))
+
+    return result
+
+
+def get_surrounding_sublist_of_length(parent_list, index, length, filler=[]):
+    """
+    Returns the sublist surrounding an index with length <length> in each
+    direction.
+
+    Example:
+    list = [2,3,4,5,6]
+    index = 2
+    length = 1
+
+    yields [3,5]
+
+    :param parent_list:
+    :param index:
+    :param length:
+    :return:
+    """
+    list_length = len(parent_list)
+    lowest_relevant_index = max(index - length, 0)
+    highest_relevant_index = min(index + length + 1, list_length)
+    list_with_index_removed = parent_list[lowest_relevant_index:index] + filler + parent_list[index+1:highest_relevant_index]
+
+    return list_with_index_removed
+
+
+def get_surrounding_sublists_upto_length(parent_list, index, length, filler=[]):
+    """
+    Gets all surounding sublists of length up to length.
+
+    :param parent_list:
+    :param index:
+    :param length:
+    :return:
+    """
+    result = []
+    for i in range(1, length+1):
+        result.append(get_surrounding_sublist_of_length(parent_list, index, i, filler=filler))
+    return result

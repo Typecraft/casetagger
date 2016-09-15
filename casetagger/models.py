@@ -77,10 +77,10 @@ class Cases:
             case_1 = case_tuple[0]
             case_2 = case_tuple[1]
 
-            # We don't both creating tuple cases of the same type.
+            # We don't create tuple-cases if the cases are in the same case-group.
             # This is primarily to avoid creating a lot of ngram-tuples
             # which yield no additional information when combined.
-            if config['ignore_tuples_of_same_type'] and case_1.type == case_2.type:
+            if config['ignore_tuples_of_same_type'] and config['case_groups'][str(case_1.type)] == config['case_groups'][case_2.type]:
                 continue
 
             # Note that case_to will be the same for all tuples
