@@ -22,12 +22,15 @@ class TestModels(object):
 
         case_instances = cases.cases
 
+        for case in case_instances:
+            print(unicode(case))
+
         assert Case(1, "a", "b") in case_instances
         assert Case(4, "c", "b") in case_instances
         assert Case(16, "c", "b") in case_instances
-        assert Case(5, "ac", "b") in case_instances
-        assert Case(17, "ac", "b") in case_instances
-        assert Case(20, "cc", "b") in case_instances
+        assert Case(5, "a@c", "b") in case_instances
+        assert Case(17, "a@c", "b") in case_instances
+        assert Case(20, "c@c", "b") not in case_instances  # As they are in the same group
 
     def test_get_case_types(self):
         case_1 = Case(1 | 4 | 32 | 128, "a", "b")

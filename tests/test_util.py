@@ -179,13 +179,6 @@ class TestUtil(object):
 
         assert sublists == [[1], [1, 2], [1, 2, 3], [1, 2, 3, 4]]
 
-    def test_get_surrounding_sublist_of_length(self):
-        a_list = list(range(6))  # [0,1,2,3,4,5]
-
-        sublists = get_surrounding_sublist_of_length(a_list, 3, 2)
-
-        assert sublists == []
-
     def test_get_surrounding_sublists_upto_length(self):
         a_list = list(range(6))  #[0, 1, 2, 3, 4, 5]
 
