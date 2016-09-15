@@ -1,10 +1,11 @@
 import math
+import sys
 
 from casetagger.config import config
 import itertools
 
 from casetagger.util import *
-from typecraft_python.models import Phrase
+from typecraft_python.models import Phrase, Word, Morpheme
 
 
 class Case:
@@ -80,13 +81,17 @@ class Cases:
             # We don't create tuple-cases if the cases are in the same case-group.
             # This is primarily to avoid creating a lot of ngram-tuples
             # which yield no additional information when combined.
-            if config['ignore_tuples_of_same_type'] and config['case_groups'][str(case_1.type)] == config['case_groups'][case_2.type]:
+            if config['ignore_tuples_of_same_type'] and config['case_groups'][str(case_1.type)] == config['case_groups'][str(case_2.type)]:
                 continue
 
+            cases = sorted([case_1, case_2], key=lambda x: x.type)
+
+            cases_type = reduce(lambda x, y: x.type | y.type, cases)
+            cases_from = "@".join(map(lambda x: x.case_from, cases))
+            cases_to = case_1.case_to
+
             # Note that case_to will be the same for all tuples
-            self.add_case(case_1.type | case_2.type,
-                          case_1.case_from + case_2.case_from,
-                          case_1.case_to)
+            self.add_case(cases_type, cases_from, cases_to)
 
     def __iter__(self):
         return self.cases.__iter__()
@@ -236,15 +241,51 @@ class WordCases(Cases):
         :param pos_to:
         :return:
         """
-        for i in range(2, config['surrounding_ngram_max_length']+1):
-            ngrams_of_length_i = get_consecutive_sublists_of_length_around_index(phrase.words, word_index, i)
-            for ngram in ngrams_of_length_i:
-                self.add_case(config['case_type_pos_surrounding_ngram'],
-                              "".join(map(lambda word: word.word if word.word is not None else "", ngram)),
-                              pos_to)
-                self.add_case(config['case_type_pos_surrounding_ngram'],
-                              "".join(map(lambda word: word.pos if word.pos is not None else "", ngram)),
-                              pos_to)
+        if len(phrase.words) == 1:
+            return
+
+        max_length = config['surrounding_ngram_max_length']+1
+        prefix_ngrams = get_all_prefix_sublists_upto_length(phrase.words,
+                                                            word_index,
+                                                            max_length)
+        suffix_ngrams = get_all_suffix_sublists_upto_length(phrase.words,
+                                                            word_index,
+                                                            max_length)
+
+        filler = Word()
+        filler.word = '<>'
+        filler.pos = '<>'
+        # We add a filler here so we don't get ambiguous surroundings.
+        # This can for instance happen with words at the edge of phrases
+        # Where the position of the pos is not implicitly in the "center"
+        surrounding_ngrams = get_surrounding_sublists_upto_length(phrase.words,
+                                                                  word_index,
+                                                                  max_length,
+                                                                  filler=[filler])
+
+        for ngram in prefix_ngrams:
+            self.add_case(config['case_type_pos_prefix_ngram'],
+                          "|".join(map(lambda word: word.word if word.word is not None else "", ngram)),
+                          pos_to)
+            self.add_case(config['case_type_pos_prefix_ngram'],
+                          "|".join(map(lambda word: word.pos if word.pos is not None else "", ngram)),
+                          pos_to)
+
+        for ngram in suffix_ngrams:
+            self.add_case(config['case_type_pos_suffix_ngram'],
+                          "|".join(map(lambda word: word.word if word.word is not None else "", ngram)),
+                          pos_to)
+            self.add_case(config['case_type_pos_suffix_ngram'],
+                          "|".join(map(lambda word: word.pos if word.pos is not None else "", ngram)),
+                          pos_to)
+
+        for ngram in surrounding_ngrams:
+            self.add_case(config['case_type_pos_surrounding_ngram'],
+                          "|".join(map(lambda word: word.word if word.word is not None else "", ngram)),
+                          pos_to)
+            self.add_case(config['case_type_pos_surrounding_ngram'],
+                          "|".join(map(lambda word: word.pos if word.pos is not None else "", ngram)),
+                          pos_to)
 
 
 class MorphemeCases(Cases):
@@ -267,7 +308,8 @@ class MorphemeCases(Cases):
         self.add_case(config['case_type_gloss_word'], morpheme.morpheme.lower(), gloss)
 
         self.add_surrounding_morpheme_ngram_cases(morpheme_index, word.morphemes, gloss)
-        self.add_surrounding_word_ngram_cases(word_index, phrase.words, gloss)
+        #self.add_surrounding_word_ngram_cases(word_index, phrase.words, gloss)
+        self.create_tuple_cases()
 
     def add_surrounding_morpheme_ngram_cases(self, morpheme_index, morphemes, gloss_to):
         """
@@ -278,15 +320,50 @@ class MorphemeCases(Cases):
         :param gloss_to:
         :return:
         """
-        for i in range(2, config['surrounding_ngram_max_length']+1):
-            ngrams_of_length_i = get_consecutive_sublists_of_length_around_index(morphemes, morpheme_index, i)
-            for ngram in ngrams_of_length_i:
-                self.add_case(config['case_type_gloss_surrounding_ngram'],
-                              "".join(map(lambda morpheme: morpheme.morpheme if morpheme.morpheme is not None else "", ngram)),
-                              gloss_to)
-                self.add_case(config['case_type_gloss_surrounding_ngram'],
-                              "".join(map(lambda morpheme: get_glosses_concatenated(morpheme), ngram)),
-                              gloss_to)
+        if len(morphemes) == 1:
+            return
+
+        max_length = config['surrounding_ngram_max_length']+1
+        prefix_ngrams = get_all_prefix_sublists_upto_length(morphemes,
+                                                            morpheme_index,
+                                                            max_length)
+        suffix_ngrams = get_all_suffix_sublists_upto_length(morphemes,
+                                                            morpheme_index,
+                                                            max_length)
+
+        filler = Morpheme()
+        filler.morpheme = '<>'
+        filler.add_gloss('<>')
+        # We add a filler here so we don't get ambiguous surroundings.
+        # This can for instance happen with words at the edge of phrases
+        # Where the position of the pos is not implicitly in the "center"
+        surrounding_ngrams = get_surrounding_sublists_upto_length(morphemes,
+                                                                  morpheme_index,
+                                                                  max_length,
+                                                                  filler=[filler])
+        for ngram in prefix_ngrams:
+            self.add_case(config['case_type_gloss_prefix_ngram'],
+                          "|".join(map(lambda morpheme: morpheme.morpheme if morpheme.morpheme is not None else "", ngram)),
+                          gloss_to)
+            self.add_case(config['case_type_gloss_prefix_ngram'],
+                          "|".join(map(lambda morpheme: get_glosses_concatenated(morpheme), ngram)),
+                          gloss_to)
+
+        for ngram in suffix_ngrams:
+            self.add_case(config['case_type_gloss_suffix_ngram'],
+                          "|".join(map(lambda morpheme: morpheme.morpheme if morpheme.morpheme is not None else "", ngram)),
+                          gloss_to)
+            self.add_case(config['case_type_gloss_suffix_ngram'],
+                          "|".join(map(lambda morpheme: get_glosses_concatenated(morpheme), ngram)),
+                          gloss_to)
+
+        for ngram in surrounding_ngrams:
+            self.add_case(config['case_type_gloss_surrounding_ngram'],
+                          "|".join(map(lambda morpheme: morpheme.morpheme if morpheme.morpheme is not None else "", ngram)),
+                          gloss_to)
+            self.add_case(config['case_type_gloss_surrounding_ngram'],
+                          "|".join(map(lambda morpheme: get_glosses_concatenated(morpheme), ngram)),
+                          gloss_to)
 
     def add_surrounding_word_ngram_cases(self, word_index, words, gloss_to):
         """

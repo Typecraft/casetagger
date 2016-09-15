@@ -201,6 +201,9 @@ class TestUtil(object):
         sublists = get_surrounding_sublists_upto_length(a_list, 0, 3)
         assert sublists == [[1], [1, 2], [1, 2, 3]]
 
+        sublists = get_surrounding_sublists_upto_length([1], 0, 2, filler=[2])
+        print(sublists)
+
     def test_get_surrounding_sublists_upto_length_with_filler(self):
         a_list = list(range(6))
         sublists = get_surrounding_sublists_upto_length(a_list, 3, 1, filler=[13])
