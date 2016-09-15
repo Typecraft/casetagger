@@ -41,13 +41,6 @@ class TestModels(object):
         assert 2 not in types
         assert 16 not in types
 
-    def test_cases_adjust_importance(self):
-
-        case_1 = Case(1 | 4, "a", "b")
-        prob_1 = 1.0
-
-        assert Cases.adjust_importance(prob_1, case_1) == 1.8
-
     def test_cases_combine_similar(self):
         cases = Cases()
         cases.add_case(1, "a", "a", 0, 0.5)
