@@ -112,7 +112,7 @@ class TestUtil(object):
         assert morpheme_5 in morphemes
 
     def test_get_consecutive_sublists(self):
-        list = range(6)
+        list = list(range(6))
 
         sublists = get_consecutive_sublists_of_length(list, 2)
         assert sublists == [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]
