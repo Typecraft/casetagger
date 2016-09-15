@@ -126,26 +126,19 @@ config = {
     "ignore_tuples_of_same_type": True,
 
     "case_type_pos_word": 1,
-    "case_type_pos_word_case": 2,
-    "case_type_pos_morpheme": 4,
-    "case_type_pos_word_contains_case": 8,
-    "case_type_pos_surrounding_ngram": 16,
+    "case_type_pos_morpheme": 2,
+    "case_type_pos_surrounding_ngram": 4,
     "case_type_gloss_morph": 65536,
     "case_type_gloss_word": 131072,
-    "case_type_gloss_word_case": 262144,
-    "case_type_gloss_word_contains_case": 524288,
-    "case_type_gloss_surrounding_ngram": 1048576,
+    "case_type_gloss_surrounding_ngram": 262144,
     "case_importance": {
         "1": 1.0,
-        "2": 0.2,
-        "4": 0.8,
-        "8": 0.8,
-        "16": 1.0,
+        "2": 1.0,
+        "4": 1.0,
+        "8": 1.0,
         "65536": 1.0,
-        "131072": 0.8,
-        "262144": 0.2,
-        "524288": 1.0,
-        "1048576": 1.0
+        "131072": 1.0,
+        "262144": 1.0,
     }
 }
 

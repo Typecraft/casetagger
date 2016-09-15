@@ -118,9 +118,14 @@ class Cases:
 
         Cases.adjust_probabilities(merged_cases)
         merged_cases = Cases.combine_similar_cases(merged_cases)
+        if config['print_test_error_detail']:
+            for case in merged_cases:
+                print("Case", unicode(case))
 
         best_case = max(merged_cases, key=lambda case: case.prob)
-
+        if config['print_test_error_detail']:
+            print("Best case", unicode(best_case))
+            print("\n\n")
         return best_case.case_to
 
     @staticmethod
@@ -164,12 +169,7 @@ class Cases:
         """
         for case in cases:
             case.prob = Cases.adjust_importance(case.prob, case)
-
-        # Normalize
-        best_case = max(cases, key=lambda x: x.prob).prob
-
-        for case in cases:
-            case.prob = case.prob / best_case
+            case.prob = Cases.adjust_occurrence(case.prob, case.occurrences)
 
     @staticmethod
     def merge_cases(case_1, case_2):
@@ -190,33 +190,8 @@ class Cases:
         return importance * probability
 
     @staticmethod
-    def adjust_probability(probability, occurrences, max_occurrences):
-        """
-        This method takes a probability, an occurrence-count, and a base-line max-occurrences,
-        from which it calculates an adjusted probability.
-
-        The idea behind this is to adjust probabilities which rely on "few" occurrence-counts to be more
-        insecure than probabilities which have high occurrence counts.
-
-        Quite simply, the scaling factor is log_a(occurences+1)/log_a(max_occurrences+1) where a is some
-        base, 1000 by default. (+1 is to avoid division by 0)
-
-        Example: We have a probability 0.8 with 2000 occurrences, and max_occurrences 8000
-
-        This gives the adjusted probability = 0.8 * log_1000(2000)/log_1000(8000) = 0.67
-
-        The scaling is clearly slow, as with max_occurrences equal to 100 000 we get a adjusted probability
-        in the example above 0.52.
-
-        Note that probability adjusting can be turned off by setting config.ADJUST_FOR_OCCURRENCE to false
-
-        :param max_occurrences:
-        :param occurrences:
-        :param probability:
-        :return:
-        """
-
-        return probability * math.log(occurrences+1, config['occurrence_order_of_magnitude']) / math.log(max_occurrences+1, config['occurrence_order_of_magnitude'])
+    def adjust_occurrence(probability, occurrence):
+        return probability * (1 - (1 / math.exp(float(occurrence + 5 * math.log(2)) / 5)))
 
 
 class WordCases(Cases):
@@ -243,13 +218,6 @@ class WordCases(Cases):
             morphemes = list(map(lambda x: x.morpheme, word.morphemes))
 
         self.add_case(config['case_type_pos_word'], word.word.lower(), pos)
-
-        if len(word.word) > 0:
-            if word.word[0].isupper():
-                self.add_case(config['case_type_pos_word_case'], "True", pos)
-
-        if word.word.lower() != word.word:
-            self.add_case(config['case_type_pos_word_contains_case'], "True", pos)
 
         if len(morphemes) > 0:
             for morpheme in morphemes:
@@ -297,13 +265,6 @@ class MorphemeCases(Cases):
 
         self.add_case(config['case_type_gloss_morph'], morpheme.morpheme.lower(), gloss)
         self.add_case(config['case_type_gloss_word'], morpheme.morpheme.lower(), gloss)
-
-        if len(word.word) > 0:
-            if word.word[0].isupper():
-                self.add_case(config['case_type_gloss_word_case'], "True", gloss)
-
-        if word.word.lower() != word.word:
-            self.add_case(config['case_type_gloss_word_contains_case'], "True", gloss)
 
         self.add_surrounding_morpheme_ngram_cases(morpheme_index, word.morphemes, gloss)
         self.add_surrounding_word_ngram_cases(word_index, phrase.words, gloss)
@@ -396,9 +357,11 @@ class TestResult:
         morphemes_1 = get_text_morphemes(text_1)
         morphemes_2 = get_text_morphemes(text_2)
 
+        zipped_morphemes = zip(morphemes_1, morphemes_2)
+
         word_errors = filter(lambda x: x[0].pos != x[1].pos, zip(words_1, words_2))
         morpheme_errors = filter(lambda x: x[0].get_glosses_concatenated(True) != x[1].get_glosses_concatenated(True),
-                                 zip(morphemes_1, morphemes_2))
+                                 zipped_morphemes)
 
         words_total = len(words_1)
         morphemes_total = len(morphemes_1)
