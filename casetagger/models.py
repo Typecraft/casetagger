@@ -1,5 +1,6 @@
 import math
 import sys
+from functools import reduce
 
 from casetagger.config import config
 import itertools
@@ -118,16 +119,14 @@ class Cases:
 
             1. Merge cases with similar to-endpoints, and combine their probability
             2. We have n cases we want to merge.
-            3. We take n/2 tuples
-            4. For each tuple, we eliminate the least likely one
-            5. If n initially was 2, and we have one case remaining, we are done.
-               Else we go back to step 1 and reiterate.
+            3. The the most likely
 
         :return:
         """
 
         merged_cases = self.cases
         if config['print_test_error_detail']:
+            print("Before merging:\n")
             for case in merged_cases:
                 print("Case", unicode(case))
         if len(self.cases) == 0:
@@ -135,6 +134,10 @@ class Cases:
 
         Cases.adjust_probabilities(merged_cases)
         merged_cases = Cases.combine_similar_cases(merged_cases)
+        if config['print_test_error_detail']:
+            print("After merging:\n")
+            for case in merged_cases:
+                print("Case", unicode(case))
 
         best_case = max(merged_cases, key=lambda case: case.prob)
         if config['print_test_error_detail']:
@@ -184,6 +187,7 @@ class Cases:
         for case in cases:
             case.prob = Cases.adjust_importance(case.prob, case)
             case.prob = Cases.adjust_occurrence(case.prob, case.occurrences)
+            case.prob = Cases.adjust_from_case_complexity(case.prob, case.case_from)
 
     @staticmethod
     def merge_cases(case_1, case_2):
@@ -196,6 +200,17 @@ class Cases:
         return case_1 if case_1.prob > case_2.prob else case_2
 
     @staticmethod
+    def adjust_from_case_complexity(probability, case_from):
+        ngram_count = len(filter(lambda x: x == '|', case_from))
+        tuple_count = len(filter(lambda x: x == '@', case_from))
+
+        temp_prob = 1 - probability
+        for i in range(1, ngram_count+1):
+            temp_prob *= (1 - probability/i)
+
+        return 1 - temp_prob
+
+    @staticmethod
     def adjust_importance(probability, case):
         case_types = case.get_case_types()
         importance = sum(map(lambda _case_type: config['case_importance'][str(_case_type)], case_types))
@@ -206,7 +221,7 @@ class Cases:
     def adjust_occurrence(probability, occurrence):
         if occurrence > 100:
             return probability
-        return probability * (1 - (1 / math.exp(float(occurrence + 5 * math.log(2)) / 5)))
+        return probability * (1 - (1 / math.exp(float(occurrence + 5 * math.log(3)) / 5)))
 
 
 class WordCases(Cases):
@@ -239,7 +254,9 @@ class WordCases(Cases):
                 if not is_empty_ignore(morpheme):
                     self.add_case(config['case_type_pos_morpheme'], morpheme.lower(), pos)
 
-        #self.add_word_surrounding_ngram_cases(word_index, phrase, pos)
+        if config['register_ngrams']:
+            self.add_word_surrounding_ngram_cases(word_index, phrase, pos)
+
         self.create_tuple_cases()
 
     def add_word_surrounding_ngram_cases(self, word_index, phrase, pos_to):
@@ -251,7 +268,7 @@ class WordCases(Cases):
         :param pos_to:
         :return:
         """
-        if len(phrase.words) == 1:
+        if len(phrase.words) <= 1:
             return
 
         max_length = config['surrounding_ngram_max_length']+1
@@ -317,8 +334,9 @@ class MorphemeCases(Cases):
         self.add_case(config['case_type_gloss_morph'], morpheme.morpheme.lower(), gloss)
         self.add_case(config['case_type_gloss_word'], morpheme.morpheme.lower(), gloss)
 
-        self.add_surrounding_morpheme_ngram_cases(morpheme_index, word.morphemes, gloss)
-        #self.add_surrounding_word_ngram_cases(word_index, phrase.words, gloss)
+        if config['register_ngrams']:
+            self.add_surrounding_morpheme_ngram_cases(morpheme_index, word.morphemes, gloss)
+            #self.add_surrounding_word_ngram_cases(word_index, phrase.words, gloss)
         self.create_tuple_cases()
 
     def add_surrounding_morpheme_ngram_cases(self, morpheme_index, morphemes, gloss_to):
@@ -330,7 +348,7 @@ class MorphemeCases(Cases):
         :param gloss_to:
         :return:
         """
-        if len(morphemes) == 1:
+        if len(morphemes) <= 1:
             return
 
         max_length = config['surrounding_ngram_max_length']+1
@@ -384,6 +402,8 @@ class MorphemeCases(Cases):
         :param gloss_to:
         :return:
         """
+        if len(words) <= 1:
+            return
         for i in range(2, config['surrounding_ngram_max_length']+1):
             ngrams_of_length_i = get_consecutive_sublists_of_length_around_index(words, word_index, i)
             for ngram in ngrams_of_length_i:

@@ -95,6 +95,11 @@ config = {
     "ignore_empty_from_cases": True,
 
     """
+    Whether or not we should use ngrams.
+    """
+    "register_ngrams": True,
+
+    """
     Maximum length os a surrounding n-gram
     """
     "surrounding_ngram_max_length": 3,
