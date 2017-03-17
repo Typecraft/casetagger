@@ -102,7 +102,7 @@ config = {
     """
     Maximum length os a surrounding n-gram
     """
-    "surrounding_ngram_max_length": 3,
+    "surrounding_ngram_max_length": 4,
 
     """
     Maximal tuple combinations to use when merging cases.
@@ -119,7 +119,7 @@ config = {
     (TYPE_1 | TYPE_3, FROM_1 + FROM_1 => TO_1)
     (TYPE_1 | TYPE_3, FROM_2 + FROM_1 => TO_1)
     """
-    "tuple_max_length": 2,
+    "tuple_max_length": 3,
 
     """
     Whether or not we should ignore creating tuples which
@@ -140,6 +140,18 @@ config = {
     "case_type_gloss_surrounding_ngram": 262144,
     "case_type_gloss_prefix_ngram": 524288,
     "case_type_gloss_suffix_ngram": 1048576,
+    "reverse_names": {
+        "1": "Word to POS",
+        "2": "Morpheme to POS",
+        "4": "Surrounding Ngram to POS",
+        "8": "Prefix Ngram to POS",
+        "16": "Suffix Ngram to POS",
+        "65536": "Morph to Gloss",
+        "131072": "Word to Gloss",
+        "262144": "Surrounding Ngram to Gloss",
+        "524288": "Prefix Ngram to Gloss",
+        "1048576": "Suffix Ngram to POS",
+    },
     "case_importance": {
         "1": 1.0,
         "2": 1.0,
