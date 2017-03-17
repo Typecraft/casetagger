@@ -59,9 +59,20 @@ class Case:
         """
         case_types = self.get_case_types()
         case_types_reversed = map(lambda x: config['reverse_names'][str(x)], case_types)
-        case_types_reversed = " and ".join(case_types_reversed)
-        return "%s %s => %s [occurrences=%s, prob=%s]" \
-               % (case_types_reversed, self.case_from, self.case_to, self.occurrences, self.prob)
+        case_types_reversed = " AND ".join(case_types_reversed)
+
+        case_from_split = self.case_from.split("@")
+        cases_from = " AND ".join(case_from_split)
+
+        return u"%s: '%s' => %s [occurrences=%s, prob=%.3f]" \
+               % (case_types_reversed, cases_from, self.case_to, self.occurrences, self.prob)
+
+    def __unicode__(self):
+        """
+        Converts the
+        :return:
+        """
+        return self.__str__()
 
 
 class CaseFromCounter:
@@ -201,23 +212,24 @@ class Cases:
         """
 
         merged_cases = self.cases
-        if config['print_test_error_detail']:
-            print("Before merging:\n")
+        if config['verbosity_level'] >= 2:
+            print("\nBefore merging:")
             for case in merged_cases:
-                print("Case", unicode(case))
+                print(unicode(case))
         if len(self.cases) == 0:
             return ""
 
         Cases.adjust_probabilities(merged_cases)
         merged_cases = Cases.combine_similar_cases(merged_cases)
-        if config['print_test_error_detail']:
-            print("After merging:\n")
+        if config['verbosity_level'] >= 2:
+            print("\nAfter merging:")
             for case in merged_cases:
-                print("Case", unicode(case))
+                print(u"=> %s with %d occurrences and %.3f probability" % (case.case_to, case.occurrences, case.prob))
 
         best_case = max(merged_cases, key=lambda case: case.prob)
-        if config['print_test_error_detail']:
-            print("Best case", unicode(best_case))
+        if config['verbosity_level'] >= 2:
+            print("\nBEST CASE:")
+            print(unicode(best_case))
             print("\n\n")
         return best_case.case_to
 
@@ -242,10 +254,13 @@ class Cases:
 
         for _, cases in combined_case_dict.items():
             prob = 1
+            occurrences = 0
             for case in cases:
                 prob *= (1-case.prob)
+                occurrences += case.occurrences
 
             cases[0].prob = 1 - prob
+            cases[0].occurrences = occurrences
             combined_cases.append(cases[0])
 
         return combined_cases
