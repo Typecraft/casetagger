@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import click
-import copy
 
-from casetagger.db import DbHandler
 from casetagger.models import TestResult
 from casetagger.tagger import CaseTagger
 
@@ -85,8 +83,6 @@ def convert_raw_text_to_texts(text_content):
     return text
 
 
-
-
 @click.group()
 @click.option('--debug', is_flag=True, default=False)
 @click.option('-v', '--verbose', is_flag=True, default=False)
@@ -134,9 +130,10 @@ def test(language, raw_text, output_raw_text, print_test_details, files):
     for result in test_results:
         click.echo("\n\n" + unicode(result))
 
-    total_result = reduce(lambda x, y: TestResult.merge(x, y), test_results)
+    if len(test_results) > 1:
+        total_result = reduce(TestResult.merge, test_results)
 
-    click.echo("\n\n" + unicode(total_result))
+        click.echo("\n\n" + unicode(total_result))
 
 
 @main.command()
@@ -169,7 +166,7 @@ def tag(language, raw_text, output_raw_text, files):
             for text in texts:
                 CaseTagger.tag_text(text)
 
-    click.echo(Parser.write((parsed_texts)))
+    click.echo(Parser.write(parsed_texts))
 
 
 @main.command()
