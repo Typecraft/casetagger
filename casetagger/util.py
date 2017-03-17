@@ -20,7 +20,7 @@ def separate_texts_by_languages(texts):
     for text in texts:
         lan = text.language
 
-        if not lan in dict:
+        if lan not in dict:
             dict[lan] = []
 
         dict[lan].append(text)
