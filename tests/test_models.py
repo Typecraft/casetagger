@@ -23,7 +23,7 @@ class TestModels(object):
         case_instances = cases.cases
 
         for case in case_instances:
-            print(unicode(case))
+            print(str(case))
 
         assert Case(1, "a", "b") in case_instances
         assert Case(4, "c", "b") in case_instances

@@ -287,8 +287,8 @@ class Cases:
         :param case_from: The case to find the complexity of.
         :return: New Probability
         """
-        ngram_count = len(filter(lambda x: x == '|', case_from))
-        tuple_count = len(filter(lambda x: x == '@', case_from))
+        ngram_count = len(list(filter(lambda x: x == '|', case_from)))
+        tuple_count = len(list(filter(lambda x: x == '@', case_from)))
 
         temp_prob = 1 - probability
         for i in range(1, ngram_count+1):
