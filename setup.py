@@ -15,6 +15,7 @@ requirements = [
 ]
 
 test_requirements = [
+    'typecraft_python>=0.3.1'
 ]
 
 setup(
