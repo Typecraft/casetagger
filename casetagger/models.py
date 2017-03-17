@@ -1,5 +1,4 @@
 import math
-import sys
 from functools import reduce
 
 from casetagger.config import config
@@ -13,7 +12,17 @@ class Case:
     """
     Class we use to mock the db-version of a Case.
     """
+
     def __init__(self, case_type, case_from, case_to, occurrences=1, prob=0):
+        """
+        Initialises the case.
+
+        :param case_type: The type of the case. An integer between 1 - 2^32
+        :param case_from: A string representing the from-part of the case.
+        :param case_to: A string representing the to-part of the case.
+        :param occurrences: The amount of times the case has occurred.
+        :param prob: The probability value of this case.
+        """
         self.type = case_type
         self.case_from = case_from
         self.case_to = case_to
@@ -27,6 +36,7 @@ class Case:
         :return:
         """
         types = []
+        # This gets all individual bits that are set in self.type
         for i in range(0, 32):
             if (self.type & (1 << i)) > 0:
                 types.append(1 << i)
@@ -34,10 +44,24 @@ class Case:
         return types
 
     def __eq__(self, other):
+        """
+        Checks if this case equals another case. Will look at
+        the variables type, case_from, case_to.
+        :param other: The case to test against.
+        :return: True or false.
+        """
         return self.type == other.type and self.case_from == other.case_from and self.case_to == other.case_to
 
     def __str__(self):
-        return "%d %s => %s [occurrences=%s, prob=%s]" % (self.type, self.case_from, self.case_to, self.occurrences, self.prob)
+        """
+        Converts the case into a readable string.
+        :return: A string representing the case.
+        """
+        case_types = self.get_case_types()
+        case_types_reversed = map(lambda x: config['reverse_names'][str(x)], case_types)
+        case_types_reversed = " and ".join(case_types_reversed)
+        return "%s %s => %s [occurrences=%s, prob=%s]" \
+               % (case_types_reversed, self.case_from, self.case_to, self.occurrences, self.prob)
 
 
 class CaseFromCounter:
@@ -60,23 +84,67 @@ class Cases:
     We have a specific data structure for the purpose of collection some
     utility methods in overriding classes.
     """
+
     def __init__(self):
+        """
+        Constructor.
+        """
         self.cases = []
         self.max_occurrence_count = 0
 
     def add_case(self, case_type, case_from, case_to, occurrences=1, prob=0):
+        """
+        Adds a case to the Cases-object.
+
+        :param case_type: The type of a case, an integer.
+        :param case_from: The 'from'-token of the case.
+        :param case_to: The 'to'-token of the case.
+        :param occurrences: The amount of times this case has occurred.
+        :param prob: The probability of this case. Defined as occurrences / sum_{i in allcases}(occurrence_i)
+        :return: void
+        """
         self.cases.append(Case(case_type, case_from, case_to, occurrences, prob))
 
     def add_all_cases(self, cases):
+        """
+        Adds a number of cases.
+
+        :param cases: An iterable of cases.
+        :return:
+        """
         for case in cases:
             self.add_case_from_obj(case)
 
     def add_case_from_obj(self, case):
+        """
+        Adds a case from an 'Case'-object. Will not clone the case, and may thus be externally overwritten.
+        :param case:
+        :return:
+        """
         assert isinstance(case, Case)
 
         self.cases.append(case)
 
     def create_tuple_cases(self):
+        """
+        This method will create tuple cases from the current cases.
+
+        What this means can be illustrated with an example.
+        Say we have the following cases:
+            1 Arne N    (case_type_pos_word)
+            65536 SBJ N     (case_type_gloss_morph)
+            ...
+
+        This method would then amongst other things, create a new case:
+            65537 Arne@SBJ N
+
+        This can be read as:
+            'If we have the word Arne and the gloss SBJ', then we have the pos N.'
+
+        The maximum length of tuples that are generated can be configured.
+
+        :return: void
+        """
         # TODO: Filter and remove morpheme cases?
 
         cases_to_be_added = []
@@ -104,9 +172,17 @@ class Cases:
         self.add_all_cases(cases_to_be_added)
 
     def __iter__(self):
+        """
+        Iterates the cases of this Cases object.
+        :return: Iterator
+        """
         return self.cases.__iter__()
 
     def __len__(self):
+        """
+        Returns the length of cases in this Cases object.
+        :return: Iterator
+        """
         return len(self.cases)
 
     def merge(self):
@@ -121,7 +197,7 @@ class Cases:
             2. We have n cases we want to merge.
             3. The the most likely
 
-        :return:
+        :return: The most promising case.
         """
 
         merged_cases = self.cases
@@ -201,6 +277,16 @@ class Cases:
 
     @staticmethod
     def adjust_from_case_complexity(probability, case_from):
+        """
+        Adjusts a cases probability from its complexity.
+
+        A case is considered complex if it is a part of an ngram ('|'-delimiters), or it is a
+        tuple-case ('@'-delimiters).
+
+        :param probability: The probability to adjust.
+        :param case_from: The case to find the complexity of.
+        :return: New Probability
+        """
         ngram_count = len(filter(lambda x: x == '|', case_from))
         tuple_count = len(filter(lambda x: x == '@', case_from))
 
@@ -208,10 +294,22 @@ class Cases:
         for i in range(1, ngram_count+1):
             temp_prob *= (1 - probability/i)
 
+        for j in range(1, tuple_count+1):
+            temp_prob *= (1 - probability/j)
+
         return 1 - temp_prob
 
     @staticmethod
     def adjust_importance(probability, case):
+        """
+        Adjust a cases importance from its importance as specified in the config.
+
+        If the case is a tuple case, the importance is adjusted for all of the cases.
+
+        :param probability: The probability to adjust.
+        :param case_from: The case to find the complexity of.
+        :return: New probability
+        """
         case_types = case.get_case_types()
         importance = sum(map(lambda _case_type: config['case_importance'][str(_case_type)], case_types))
 
@@ -219,20 +317,35 @@ class Cases:
 
     @staticmethod
     def adjust_occurrence(probability, occurrence):
+        """
+        Adjust a cases importance based on its occurrence.
+
+        The idea here is simply that an often occurring case is 'more reliable' than a case we've only
+        seen a few times.
+
+        :param probability: The probability to adjust.
+        :param case_from: The case to find the complexity of.
+        :return: New probability
+        """
         if occurrence > 100:
             return probability
         return probability * (1 - (1 / math.exp(float(occurrence + 5 * math.log(3)) / 5)))
 
 
 class WordCases(Cases):
+    """
+    This class specializes the 'Cases'-object, and implements some handy helper-methods
+    for adding word-specific cases.
+    """
+
     def __init__(self, word, phrase):
         """
         Creates the word-cases object.
 
         This constructor initialises all relevant cases for the WordCases object.
 
-        :param word:
-        :param phrase:
+        :param word: The word to get the cases for.
+        :param phrase: The surrounding phrase.
         """
 
         Cases.__init__(self)
@@ -427,9 +540,13 @@ class TestResult:
         self.wrong_morphemes = wrong_morphemes
 
     def word_accuracy(self):
+        if self.words_total == 0:
+            return -1
         return 100 * float(self.words_correct) / float(self.words_total)
 
     def morpheme_accuracy(self):
+        if self.morphemes_total == 0:
+            return -1
         return 100 * float(self.morphemes_correct) / float(self.morphemes_total)
 
     def __str__(self):
@@ -494,13 +611,16 @@ class TestResult:
         if other is None:
             return this
 
+        this.wrong_words.extend(other.wrong_words)
+        this.wrong_morphemes.extend(other.wrong_morphemes)
+
         return TestResult(this.title + " | " + other.title,
                           this.words_total + other.words_total,
                           this.morphemes_total + other.morphemes_total,
                           this.words_correct + other.words_correct,
                           this.morphemes_correct + other.morphemes_correct,
-                          this.wrong_words.extend(other.wrong_words),
-                          this.wrong_morphemes.extend(other.wrong_morphemes))
+                          this.wrong_words,
+                          this.wrong_morphemes)
 
 
 def is_empty_ignore(content):
