@@ -7,7 +7,7 @@ sys.stdout = UTF8Writer(sys.stdout)
 
 
 def log(content):
-    if config['verbosity_level'] >= 1:
+    if config['verbosity_level'] >= 0:
         print("[Log]: " + unicode(content))
 
 

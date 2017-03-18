@@ -18,7 +18,7 @@ config = {
     """
     Verbosity level.
 
-    0 = Print nothing (default)
+    0 = Print only logs and fatal errors
     1 = Print errors and start-finish messages
     2 = Print debug messages
 
