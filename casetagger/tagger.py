@@ -4,7 +4,8 @@ import copy
 from casetagger.config import config
 from casetagger import logger
 from casetagger.db import DbHandler
-from casetagger.models import WordCases, MorphemeCases, TestResult
+from casetagger.models import WordCases, MorphemeCases
+from casetagger.debug import TestResult
 from typecraft_python.models import Text
 
 

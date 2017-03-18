@@ -2,7 +2,7 @@
 
 import click
 
-from casetagger.models import TestResult
+from casetagger.debug import TestResult
 from casetagger.tagger import CaseTagger
 
 from casetagger.config import config, VERSION
@@ -128,12 +128,11 @@ def test(language, raw_text, output_raw_text, print_test_details, files):
                 test_results.append(CaseTagger.test_text(text))
 
     for result in test_results:
-        click.echo("\n\n" + unicode(result))
+        logger.log(unicode(result))
 
     if len(test_results) > 1:
         total_result = reduce(TestResult.merge, test_results)
-
-        click.echo("\n\n" + unicode(total_result))
+        logger.log(unicode(total_result))
 
 
 @main.command()
