@@ -212,6 +212,7 @@ class Cases:
         """
 
         merged_cases = self.cases
+        Cases.adjust_individual_probabilities(merged_cases)
         if config['verbosity_level'] >= 2:
             print("\nBefore merging:")
             for case in merged_cases:
@@ -219,10 +220,15 @@ class Cases:
         if len(self.cases) == 0:
             return ""
 
-        Cases.adjust_probabilities(merged_cases)
         merged_cases = Cases.combine_similar_cases(merged_cases)
         if config['verbosity_level'] >= 2:
             print("\nAfter merging:")
+            for case in merged_cases:
+                print(u"=> %s with %d occurrences and %.3f probability" % (case.case_to, case.occurrences, case.prob))
+
+        Cases.adjust_collectional_probabilities(merged_cases)
+        if config['verbosity_level'] >= 2:
+            print("\nAfter merging and adjusting:")
             for case in merged_cases:
                 print(u"=> %s with %d occurrences and %.3f probability" % (case.case_to, case.occurrences, case.prob))
 
@@ -266,7 +272,7 @@ class Cases:
         return combined_cases
 
     @staticmethod
-    def adjust_probabilities(cases):
+    def adjust_individual_probabilities(cases):
         """
         This method adjusts the probabilities of cases. The adjustment is
         done in accordance with the importance of each case, as defined in
@@ -277,8 +283,26 @@ class Cases:
         """
         for case in cases:
             case.prob = Cases.adjust_importance(case.prob, case)
-            case.prob = Cases.adjust_occurrence(case.prob, case.occurrences)
             case.prob = Cases.adjust_from_case_complexity(case.prob, case.case_from)
+
+    @staticmethod
+    def adjust_collectional_probabilities(cases):
+        """
+        This method adjusts the probabilities of a collection of cases.
+
+        Adjusting probabilities based on for instance the occurrence-count, can only really
+        be done accurately in the context of other similar cases.
+
+        :param cases: A collection of cases.
+        :return: Void, everything is edited in place
+        """
+        occurrence_max = float(max(map(lambda case: case.occurrences, cases)))
+
+        if occurrence_max == 0:
+            return
+
+        for case in cases:
+            case.prob /= 1.0 + math.exp(-case.occurrences / (occurrence_max / 2))
 
     @staticmethod
     def merge_cases(case_1, case_2):
@@ -339,13 +363,16 @@ class Cases:
         The idea here is simply that an often occurring case is 'more reliable' than a case we've only
         seen a few times.
 
+        We adjust by using the raw sigmoid function.
+
         :param probability: The probability to adjust.
         :param case_from: The case to find the complexity of.
         :return: New probability
         """
-        if occurrence > 100:
-            return probability
-        return probability * (1 - (1 / math.exp(float(occurrence + 5 * math.log(3)) / 5)))
+        if occurrence < 0:
+            return 0
+
+        return (1.0 / (1.0 + math.exp(-occurrence/100))) * probability
 
 
 class WordCases(Cases):
