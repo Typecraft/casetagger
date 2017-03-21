@@ -326,7 +326,8 @@ class Cases:
         :return: New probability
         """
         case_types = case.get_case_types()
-        importance = sum(map(lambda _case_type: config['case_importance'][str(_case_type)], case_types))
+        importances = map(lambda _case_type: config['case_importance'][str(_case_type)], case_types)
+        importance = sum(importances) / len(importances)
 
         return importance * probability
 
