@@ -79,6 +79,7 @@ class CaseFromCounter:
     """
     Class we use to mock the db-data of a CaseFromCounter
     """
+
     def __init__(self, case_type, case_from, occurrences=1):
         self.type = case_type
         self.case_from = case_from
@@ -350,7 +351,9 @@ class Cases:
         :return: New probability
         """
         case_types = case.get_case_types()
-        importances = map(lambda _case_type: config['case_importance'][str(_case_type)], case_types)
+        importances = list(map(lambda _case_type: config['case_importance'][str(_case_type)], case_types))
+        if len(importances) == 0:
+            return probability
         importance = sum(importances) / len(importances)
 
         return importance * probability
