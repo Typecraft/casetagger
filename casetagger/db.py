@@ -29,6 +29,7 @@ CREATE INDEX IF NOT EXISTS cases_tf_from_idx ON cases_from_counter(type, case_fr
 COMMIT;
 """
 
+
 def create_db_path(language):
     return BASE_DIR + '/db/' + language + '_db.db'
 
@@ -43,8 +44,8 @@ class DbHandler:
         self.memory = use_memory
 
         if not use_memory:
-            #if not os.path.isdir(BASE_DIR + "/db"):
-            #    os.makedirs(BASE_DIR + "/db")
+            if not os.path.isdir(BASE_DIR + "/db"):
+                os.makedirs(BASE_DIR + "/db")
             self.conn = sqlite3.connect(self.db_path)
             self.init()
         else:
