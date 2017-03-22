@@ -2,6 +2,6 @@
 
 __author__ = 'Tormod Haugland'
 __email__ = 'tormod.haugland@gmail.com'
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 
 __all__ = ['db', 'tagger', 'models', 'config']
