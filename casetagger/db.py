@@ -40,6 +40,8 @@ class DbHandler:
 
     def __init__(self, language, use_memory=False):
         self.db_path = create_db_path(language)
+        if not os.path.isdir(BASE_DIR + "/db"):
+            os.makedirs(BASE_DIR + "/db")
         self.memory = use_memory
 
         if not use_memory:
