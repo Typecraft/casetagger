@@ -18,10 +18,10 @@ class TestDatabase(object):
 
     @classmethod
     def setup_class(cls):
-        cls.db = DbHandler("test/test", False)
+        cls.db = DbHandler("test_test", False)
 
     def test_exists(self):
-        db = DbHandler("test/exist", False)
+        db = DbHandler("test_exist", False)
 
         assert db is not None
         assert db.conn is not None
@@ -117,12 +117,12 @@ class TestDatabase(object):
         self.db._clear_database()
 
     def test_copy_from_db(self):
-        db = DbHandler("test/copy_1", False)
+        db = DbHandler("test_copy_1", False)
 
         case = Case(config['case_type_gloss_word'], "from", "to")
         db.insert_case(case)
 
-        db_2 = DbHandler("test/copy_2", True)
+        db_2 = DbHandler("test_copy_2", True)
 
         case_2 = db.get_case(config['case_type_gloss_word'], "from", "to")
         assert case_2 is not None
@@ -165,7 +165,7 @@ class TestDatabase(object):
         self.db._clear_database()
 
     def test_clear_and_destroy_database(self):
-        db = DbHandler("test/test_2", False)
+        db = DbHandler("test_test_2", False)
 
         case_1 = Case(config['case_type_pos_morpheme'], "from", "to_1")
         db.insert_case(case_1)
