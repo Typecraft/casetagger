@@ -20,7 +20,7 @@ test_requirements = [
 
 setup(
     name='casetagger',
-    version='0.4.1',
+    version='0.4.2',
     description="Part-of-speech and morphological tagger employing a simple cased-based algorithm.",
     long_description=readme + '\n\n' + history,
     author="Tormod Haugland",
