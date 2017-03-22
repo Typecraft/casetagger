@@ -180,6 +180,18 @@ config = {
         "262144": 6,
         "524288": 6,
         "1048576": 6
+    },
+    """
+    These are adjustments for specific (case_type, case_from)-tuples
+    """
+    "case_adjustments": {
+
+    },
+    """
+    These are specific mappings from a case.
+    """
+    "case_mappings": {
+
     }
 }
 
