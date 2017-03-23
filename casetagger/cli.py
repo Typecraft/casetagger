@@ -165,7 +165,7 @@ def tag(language, raw_text, output_raw_text, files):
             for text in texts:
                 CaseTagger.tag_text(text)
 
-    click.echo(Parser.write(parsed_texts))
+    print(Parser.write(parsed_texts).decode("utf8"))
 
 
 @main.command()
