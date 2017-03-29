@@ -39,17 +39,69 @@ When tagging a phrase, the tagger fetches any relevant case for each word, and t
 Installation
 -----------
 
+.. code::
     pip install casetagger
+
+or
+
+.. code::
+    sudo pip install casetagger
 
 Usage
 --------
+After installation, you will have available the `casetagger` command:
 
-    casetagger [OPTIONS]
+.. code::
+	Usage: casetagger [OPTIONS] COMMAND [ARGS]...
 
-Tagging
+	Options:
+	  --debug
+	  -v, --verbose
+	  --memory
+	  --version      Show the version and exit.
+	  --help         Show this message and exit.
+
+	Commands:
+	  tag
+	  test
+	  train
+
+The three different subcommands are `tag`, `train` and `test`.
+
+.. code::
+	Usage: casetagger tag [OPTIONS] [FILES]...
+
+	Options:
+	  --language TEXT
+	  --raw-text
+	  --output-raw-text
+	  --help             Show this message and exit.
+
+.. code::
+
+	Usage: casetagger test [OPTIONS] [FILES]...
+
+	Options:
+	  --language TEXT
+	  --raw-text
+	  --output-raw-text
+	  --print-test-details
+	  --help                Show this message and exit.
+
+.. code::
+
+	Usage: casetagger train [OPTIONS] [FILES]...
+
+	Options:
+	  --language TEXT
+	  --help           Show this message and exit.
+
+Each command takes a files as arguments. Each file is expected to be a TC-XML file. All output is written to stdout.
+
+
+Configuration
 --------
-
-The
+TODO
 
 Features
 --------
