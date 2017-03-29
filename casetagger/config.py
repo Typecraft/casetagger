@@ -13,7 +13,8 @@ Base directory.
 BASE_DIR = os.path.dirname(__file__)
 
 """
-The primary config of the """
+The primary config
+"""
 config = {
     "verbosity_level": 0,
     "print_test_error_detail": False,
@@ -78,6 +79,12 @@ config = {
         "1048576": 6
     },
     "case_adjustments": {
+
+    },
+    "case_from_adjustments": {
+
+    },
+    "case_full_adjustments": {
 
     },
     "case_mappings": {
