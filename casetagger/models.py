@@ -74,6 +74,14 @@ class Case:
         """
         return self.__str__()
 
+    def __repr__(self):
+        """
+        Gets the hash of this case. This is just the string created by concatenating the case's type,
+        case_from and case_to attributes.
+        :return:
+        """
+        return "%d%s%s" % (self.type, self.case_from, self.case_to)
+
 
 class CaseFromCounter:
     """

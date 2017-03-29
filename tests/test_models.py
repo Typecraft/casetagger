@@ -72,3 +72,13 @@ def test_case_unicode_same_as_str():
 def test_case_from_str():
     case_from_counter = CaseFromCounter(1, "from")
     assert "1" in case_from_counter.__str__()
+
+
+def test_case_repr():
+    case = Case(
+        case_type=4,
+        case_from="a",
+        case_to="b"
+    )
+
+    assert "4ab" == repr(case)
