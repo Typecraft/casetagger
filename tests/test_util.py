@@ -139,7 +139,7 @@ class TestUtil(object):
 
         assert sublists == [[1, 2], [2, 4], [4, 5]]
 
-        a_list = a_list + [6] # [0,1,2,3,4,5,6]
+        a_list = a_list + [6]  # [0,1,2,3,4,5,6]
 
         sublists = get_consecutive_sublists_of_length_around_index(a_list, 3, 3)
 
@@ -154,7 +154,7 @@ class TestUtil(object):
 
         sublists = get_all_prefix_sublists_upto_length(a_list, 3, 2)
 
-        assert sublists == [[2], [1,2]]
+        assert sublists == [[2], [1, 2]]
 
         sublists = get_all_prefix_sublists_upto_length(a_list, 0, 3)
 
@@ -205,3 +205,10 @@ class TestUtil(object):
 
         sublists = get_surrounding_sublists_upto_length(a_list, 1, 2, filler=[97])
         assert sublists == [[0, 97, 2], [0, 97, 2, 3]]
+
+    def test_standard_0_to_1000_factor_scale(self):
+        assert standard_0_to_1000_factor_scale(0) == 0
+        assert standard_0_to_1000_factor_scale(1) == 1
+        assert standard_0_to_1000_factor_scale(20) > 2
+        assert standard_0_to_1000_factor_scale(200) > 3
+        assert standard_0_to_1000_factor_scale(1000) < 4

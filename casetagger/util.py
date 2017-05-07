@@ -1,3 +1,4 @@
+import math
 from typecraft_python.models import Morpheme
 
 
@@ -168,3 +169,16 @@ def get_surrounding_sublists_upto_length(parent_list, index, length, filler=[]):
     for i in range(1, length+1):
         result.append(get_surrounding_sublist_of_length(parent_list, index, i, filler=filler))
     return result
+
+
+def standard_0_to_1000_factor_scale(input):
+    """
+    We use this method to scale a value between 0 and 1000 (the standard values we use for configuration
+    importances) to a value we can directly multiply a probability-factor with.
+
+    The values are clamped between 0 and 4.
+
+    :param input:
+    :return:
+    """
+    return min(max(math.log10(9 * input + 1), 0), 4)
