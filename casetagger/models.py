@@ -176,7 +176,7 @@ class Cases:
                 # This is primarily to avoid creating a lot of ngram-tuples
                 # which yield no additional information when combined.
                 if config['ignore_tuples_of_same_type']:
-                    # This somewhat ugly if simply says that if either of the cases share case_group...
+                    # This somewhat ugly "if" simply says that if either of the cases share case_group...
                     if len(set(map(lambda x: config['case_groups'][str(x.type)], case_tuple))) < len(case_tuple):
                         continue
 
@@ -255,7 +255,7 @@ class Cases:
         outcome. Their probability is merged simply by calculating 1 minus the probability
         that they are all wrong:
 
-        1 - (sum_{case in cases}(1 - case.prob))
+        1 - (prod_{case in cases}(1 - case.prob))
 
         :param cases: A set of unique to_cases with their calculated probabilities.
         :return:
@@ -384,6 +384,10 @@ class Cases:
             return 0
 
         return (1.0 / (1.0 + math.exp(-occurrence/100))) * probability
+
+    @staticmethod
+    def adjust_case_from_config(case):
+        case = Case
 
 
 class WordCases(Cases):
