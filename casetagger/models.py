@@ -81,7 +81,7 @@ class Case:
         case_from and case_to attributes.
         :return:
         """
-        return "%d%s%s" % (self.type, self.case_from, self.case_to)
+        return u"%d%s%s" % (self.type, self.case_from, self.case_to)
 
 
 class CaseFromCounter:
@@ -383,7 +383,7 @@ class Cases:
         :param case: The case object.
         :return:
         """
-        key = "%d%s" % (case.type, case.case_from)
+        key = u"%d%s" % (case.type, case.case_from)
 
         if key in config['case_from_adjustments']:
             importance = config['case_from_adjustment']
@@ -399,7 +399,7 @@ class Cases:
         :param case: The case object.
         :return:
         """
-        key = repr(case)
+        key = u"%d%s%s" % (case.type, case.case_from, case.case_to)
 
         if key in config['case_full_adjustments']:
             importance = config['case_from_adjustment']
@@ -455,15 +455,12 @@ class WordCases(Cases):
 
         morphemes = []
 
-        if len(word.morphemes) > 0:
-            morphemes = list(map(lambda x: x.morpheme, word.morphemes))
-
         self.add_case(config['case_type_pos_word'], word.word.lower(), pos)
 
-        if len(morphemes) > 0:
-            for morpheme in morphemes:
-                if not is_empty_ignore(morpheme):
-                    self.add_case(config['case_type_pos_morpheme'], morpheme.lower(), pos)
+        if len(word.morphemes) > 0:
+            for morpheme in word.morphemes:
+                if not is_empty_ignore(morpheme.morpheme):
+                    self.add_case(config['case_type_pos_morpheme'], morpheme.morpheme.lower(), pos)
                     for gloss in morpheme.glosses:
                         self.add_case(config['case_type_pos_gloss'], gloss, pos)
 
@@ -546,6 +543,7 @@ class MorphemeCases(Cases):
 
         self.add_case(config['case_type_gloss_morph'], morpheme.morpheme.lower(), gloss)
         self.add_case(config['case_type_gloss_word'], morpheme.morpheme.lower(), gloss)
+        self.add_case(config['case_type_gloss_pos'], word.pos, gloss)
 
         if config['register_ngrams']:
             self.add_surrounding_morpheme_ngram_cases(morpheme_index, word.morphemes, gloss)
