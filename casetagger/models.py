@@ -298,6 +298,8 @@ class Cases:
         """
         for case in cases:
             case.prob = Cases.adjust_importance(case.prob, case)
+            case.prob = Cases.adjust_case_from_importance(case.prob, case)
+            case.prob = Cases.adjust_full_case_importance(case.prob, case)
             case.prob = Cases.adjust_from_case_complexity(case.prob, case.case_from)
 
     @staticmethod
@@ -371,6 +373,38 @@ class Cases:
         importance = sum(importances) / len(importances)
 
         return importance * probability
+
+    @staticmethod
+    def adjust_case_from_importance(probability, case):
+        """
+        Adjusts a case by an importance of its (type, case_from), if such an adjustment exists.
+
+        :param probability: The existing probability for the case.
+        :param case: The case object.
+        :return:
+        """
+        key = "%d%s" % (case.type, case.case_from)
+
+        if key in config['case_from_adjustments']:
+            importance = config['case_from_adjustment']
+            return probability * standard_0_to_1000_factor_scale(importance)
+        return probability
+
+    @staticmethod
+    def adjust_full_case_importance(probablity, case):
+        """
+        Adjusts a case by an importance of the full case input, if such an adjustment exists.
+
+        :param probability: The existing probability for the case.
+        :param case: The case object.
+        :return:
+        """
+        key = repr(case)
+
+        if key in config['case_full_adjustments']:
+            importance = config['case_from_adjustment']
+            return probablity * standard_0_to_1000_factor_scale(importance)
+        return probablity
 
     @staticmethod
     def adjust_occurrence(probability, occurrence):
