@@ -464,6 +464,8 @@ class WordCases(Cases):
             for morpheme in morphemes:
                 if not is_empty_ignore(morpheme):
                     self.add_case(config['case_type_pos_morpheme'], morpheme.lower(), pos)
+                    for gloss in morpheme.glosses:
+                        self.add_case(config['case_type_pos_gloss'], gloss, pos)
 
         if config['register_ngrams']:
             self.add_word_surrounding_ngram_cases(word_index, phrase, pos)
