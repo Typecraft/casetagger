@@ -56,7 +56,7 @@ config = {
         "131072": "Word to Gloss",
         "262144": "Surrounding Ngram to Gloss",
         "524288": "Prefix Ngram to Gloss",
-        "1048576": "Suffix Ngram to POS",
+        "1048576": "Suffix Ngram to Gloss",
         "2097152": "POS to Gloss"
     },
     "case_importance": {
@@ -110,7 +110,6 @@ config = {
         "1mu": "Nrel",
         "33a@REL": "PNrel",
         "33a@RLN": "PRT",
-        "33so@LOC": "LOC",
         "33so@LOC": "Nrel",
         "9so@V": "ADV",
         "1ntumi": "V",
@@ -139,7 +138,18 @@ config = {
         "65536kura": "",
         "65536wɔn": "3PL",
         "65536wɔm": "3PL",
-        "65536wɔ": "3PL"
+        "65536wɔ": "3PL",
+        "2162688kura@N": "",
+        "2162688ne@PNposs": "3SG.POSS",
+        "2162688nyinaa@QUANT": "DEF",
+        "2162688n@V": "NEG",
+        "2162688n@N": "PL",
+        "2162688ɛ@V": "3SG.INANIM",
+        "2162688hene@N": "",
+        "2162688bɛ@V": "FUT.H",
+        "2162688kɔ@V": "ITV",
+        "2162688obiara@PN": "INDEF",
+        "2162688so@Nrel": "LOC"
     }
 }
 

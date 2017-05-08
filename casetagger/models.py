@@ -547,7 +547,7 @@ class MorphemeCases(Cases):
 
         if config['register_ngrams']:
             self.add_surrounding_morpheme_ngram_cases(morpheme_index, word.morphemes, gloss)
-            #self.add_surrounding_word_ngram_cases(word_index, phrase.words, gloss)
+            # self.add_surrounding_word_ngram_cases(word_index, phrase.words, gloss)
         self.create_tuple_cases()
 
     def add_surrounding_morpheme_ngram_cases(self, morpheme_index, morphemes, gloss_to):
@@ -580,6 +580,7 @@ class MorphemeCases(Cases):
                                                                   morpheme_index,
                                                                   max_length,
                                                                   filler=[filler])
+
         for ngram in prefix_ngrams:
             self.add_case(config['case_type_gloss_prefix_ngram'],
                           "|".join(map(lambda morpheme: morpheme.morpheme if morpheme.morpheme is not None else "", ngram)),
