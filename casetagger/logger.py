@@ -23,3 +23,12 @@ def error(content):
 
 def critical(content):
     print("[Critical error]: " + unicode(content))
+
+
+def debug_print_cases(cases):
+    if config["verbosity_level"] == 2:
+        if hasattr(cases, '__iter__'):
+            for case in cases:
+                print(unicode(case))
+        else:
+            print(unicode(cases))

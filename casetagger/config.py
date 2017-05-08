@@ -88,7 +88,7 @@ config = {
 
     },
     "case_mappings": {
-
+        "1jeg": "PN"
     }
 }
 

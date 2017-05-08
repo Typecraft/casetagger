@@ -122,11 +122,6 @@ class CaseTagger:
             raise Exception
 
         copied_text = copy.deepcopy(text)
-
         CaseTagger.tag_text(text)
 
         return TestResult.from_data(copied_text, text)
-
-
-
-

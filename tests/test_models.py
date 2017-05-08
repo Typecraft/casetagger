@@ -82,3 +82,10 @@ def test_case_repr():
     )
 
     assert "4ab" == repr(case)
+
+
+def test_cases_has_config_mapping():
+    cases = Cases()
+    cases.add_case(1, "jeg", "")
+
+    assert cases.merge() == "PN"

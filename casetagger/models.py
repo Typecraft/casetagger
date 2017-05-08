@@ -4,6 +4,7 @@ from functools import reduce
 from casetagger.config import config
 import itertools
 
+from casetagger.logger import debug_print_cases, debug
 from casetagger.util import *
 from typecraft_python.models import Phrase, Word, Morpheme
 
@@ -221,31 +222,35 @@ class Cases:
         """
 
         merged_cases = self.cases
+
+        # First check if we have a mapping
+        for case in merged_cases:
+            key = "%d%s" % (case.type, case.case_from)
+            if key in config['case_mappings']:
+                return config['case_mappings'][key]
+
         Cases.adjust_individual_probabilities(merged_cases)
-        if config['verbosity_level'] >= 2:
-            print("\nBefore merging:")
-            for case in merged_cases:
-                print(unicode(case))
+        debug("Before merging:")
+        debug_print_cases(merged_cases)
+        debug("\n\n")
         if len(self.cases) == 0:
             return ""
 
         merged_cases = Cases.combine_similar_cases(merged_cases)
-        if config['verbosity_level'] >= 2:
-            print("\nAfter merging:")
-            for case in merged_cases:
-                print(u"=> %s with %d occurrences and %.3f probability" % (case.case_to, case.occurrences, case.prob))
+        debug("After merging:")
+        debug_print_cases(merged_cases)
+        debug("\n\n")
 
         Cases.adjust_collectional_probabilities(merged_cases)
-        if config['verbosity_level'] >= 2:
-            print("\nAfter merging and adjusting:")
-            for case in merged_cases:
-                print(u"=> %s with %d occurrences and %.3f probability" % (case.case_to, case.occurrences, case.prob))
+        debug("After merging and adjusting:")
+        debug_print_cases(merged_cases)
+        debug("\n\n")
 
         best_case = max(merged_cases, key=lambda case: case.prob)
-        if config['verbosity_level'] >= 2:
-            print("\nBEST CASE:")
-            print(unicode(best_case))
-            print("\n\n")
+        debug("Best case:")
+        debug("\n\n")
+        debug_print_cases(merged_cases)
+        debug("\n\n")
         return best_case.case_to
 
     @staticmethod
@@ -276,6 +281,7 @@ class Cases:
 
             cases[0].prob = 1 - prob
             cases[0].occurrences = occurrences
+            cases[0].case_from = ""
             combined_cases.append(cases[0])
 
         return combined_cases
