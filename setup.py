@@ -11,11 +11,11 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.0',
-    'typecraft_python>=0.3.1'
+    'typecraft_python>=0.5.0'
 ]
 
 test_requirements = [
-    'typecraft_python>=0.3.1'
+    'typecraft_python>=0.5.0'
 ]
 
 setup(
